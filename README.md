@@ -1,36 +1,22 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# StudySync
 
-## Getting Started
+AI-powered academic planner that combines all your syllabi into one timeline and flags overlapping deadlines before they become a problem.
 
-First, run the development server:
+StudySync is a syllabus-based academic planning tool that helps students organize deadlines and identify periods of high academic workload. Students currently have to review multiple syllabi and manually transfer deadlines into their calendars or planners, which can lead to missed deadlines, incorrect entries, and difficulty recognizing overlaps between courses. StudySync automates this process by extracting deadlines from uploaded syllabi, organizing them into a single unified timeline, and flagging overlapping deadlines so students can plan ahead.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Key Features
+- **Syllabus upload** — Upload syllabi from multiple courses (PDF)
+- **AI deadline extraction** — Automatically extract assignments, exams, projects, and other deadlines
+- **Unified timeline** — Combine all deadlines into one visual timeline across every course
+- **Overlap detection** — Identify periods where multiple deadlines overlap, so students can spot crunch weeks early
+- **AI planning assistant** — Get AI-assisted recommendations on what to prioritize and how to prepare
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Tech Stack
+- **Frontend & Backend:** Next.js (API routes)
+- **Auth:** NextAuth
+- **Database:** Supabase (PostgreSQL)
+- **Styling:** Tailwind CSS
+- **AI:** Gemini API (syllabus extraction + planning assistant)
+- **PDF Processing:** PDF parsing library (converts uploaded syllabi to text for extraction)
+- **Data Visualization:** Recharts
+- **Deployment:** Vercel
