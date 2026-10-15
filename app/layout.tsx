@@ -25,7 +25,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
 
           <Topbar />
 
-          <div className="relative z-10 mx-auto flex w-full max-w-[1380px] flex-1 flex-col px-5 py-6 md:px-9 md:py-7">
+          <div className="app-content">
             {children}
           </div>
         </main>

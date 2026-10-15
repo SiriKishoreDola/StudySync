@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getPriority, priorityOrder, type TaskType } from "@/lib/priority";
 import Icon from "./Icon";
 
 type Task = {
@@ -9,10 +10,8 @@ type Task = {
   weekday: string;
   title: string;
   course: string;
-  type: string;
+  type: TaskType;
   effort: string;
-  description: string;
-  steps: string[];
 };
 
 type Week = {
@@ -32,17 +31,8 @@ const weeks: Week[] = [
         weekday: "MON",
         title: "Reading response",
         course: "LIT 201",
-        type: "Writing",
+        type: "Assignment",
         effort: "1.5 hours",
-        description:
-          "Respond to the assigned chapters with a focused analysis and two discussion questions.",
-        steps: [
-          "Read and annotate the chapters",
-          "Select two key passages",
-          "Draft the response",
-          "Write discussion questions",
-          "Proofread and submit",
-        ],
       },
       {
         id: 2,
@@ -52,15 +42,6 @@ const weeks: Week[] = [
         course: "SOC 204",
         type: "Assignment",
         effort: "4 hours",
-        description:
-          "Develop a focused research question and outline the proposed methodology for your semester study.",
-        steps: [
-          "Review the proposal rubric",
-          "Narrow the research topic",
-          "Draft the research question",
-          "Outline methods and sources",
-          "Proofread and submit",
-        ],
       },
       {
         id: 3,
@@ -68,35 +49,17 @@ const weeks: Week[] = [
         weekday: "FRI",
         title: "Lab analysis",
         course: "BIO 118",
-        type: "Lab report",
+        type: "Assignment",
         effort: "3 hours",
-        description:
-          "Analyze this week’s experiment and present the results in a concise lab report.",
-        steps: [
-          "Clean the experiment data",
-          "Create the results chart",
-          "Interpret key findings",
-          "Write the discussion",
-          "Check formatting",
-        ],
       },
       {
         id: 4,
         day: "22",
         weekday: "SUN",
-        title: "Source annotations",
+        title: "Quiz 1",
         course: "HIST 230",
-        type: "Research",
+        type: "Quiz",
         effort: "2 hours",
-        description:
-          "Prepare short annotations for five primary sources related to the semester research topic.",
-        steps: [
-          "Confirm five sources",
-          "Check source credibility",
-          "Summarize each source",
-          "Add relevance notes",
-          "Format citations",
-        ],
       },
     ],
   },
@@ -110,35 +73,17 @@ const weeks: Week[] = [
         weekday: "MON",
         title: "Sketchbook review",
         course: "ART 145",
-        type: "Studio",
+        type: "Assignment",
         effort: "2 hours",
-        description:
-          "Curate your strongest process sketches and prepare them for an individual progress review.",
-        steps: [
-          "Review recent sketches",
-          "Tag strongest directions",
-          "Add missing annotations",
-          "Sequence the pages",
-          "Prepare talking points",
-        ],
       },
       {
         id: 6,
         day: "25",
         weekday: "WED",
-        title: "Seminar discussion",
+        title: "Chapter 3 quiz",
         course: "SOC 204",
-        type: "Discussion",
+        type: "Quiz",
         effort: "1 hour",
-        description:
-          "Lead a short seminar conversation using the assigned article and your prepared prompts.",
-        steps: [
-          "Re-read the article",
-          "Summarize the argument",
-          "Draft three prompts",
-          "Find one counterpoint",
-          "Practice your introduction",
-        ],
       },
       {
         id: 7,
@@ -146,35 +91,17 @@ const weeks: Week[] = [
         weekday: "FRI",
         title: "Calculus problem set",
         course: "MATH 112",
-        type: "Problem set",
+        type: "Assignment",
         effort: "2 hours",
-        description:
-          "Complete the assigned set on derivatives, including two written-response challenge problems.",
-        steps: [
-          "Review lecture examples",
-          "Complete questions 1–12",
-          "Attempt challenge problems",
-          "Check and correct answers",
-          "Upload a clean scan",
-        ],
       },
       {
         id: 8,
         day: "29",
         weekday: "SUN",
-        title: "Project outline",
+        title: "Project proposal",
         course: "HIST 230",
-        type: "Planning",
+        type: "Project",
         effort: "2.5 hours",
-        description:
-          "Turn your initial research into a structured outline for the upcoming history project.",
-        steps: [
-          "Review research notes",
-          "Define the main claim",
-          "Group supporting evidence",
-          "Build section headings",
-          "Check the argument flow",
-        ],
       },
     ],
   },
@@ -188,71 +115,35 @@ const weeks: Week[] = [
         weekday: "MON",
         title: "Peer feedback",
         course: "LIT 201",
-        type: "Workshop",
+        type: "Assignment",
         effort: "1 hour",
-        description:
-          "Give specific, constructive feedback on two classmates’ comparative essay drafts.",
-        steps: [
-          "Read both drafts",
-          "Mark strong arguments",
-          "Note unclear sections",
-          "Write actionable feedback",
-          "Submit review notes",
-        ],
       },
       {
         id: 10,
         day: "02",
         weekday: "WED",
-        title: "Data worksheet",
+        title: "Genetics quiz",
         course: "BIO 118",
-        type: "Worksheet",
+        type: "Quiz",
         effort: "1.5 hours",
-        description:
-          "Complete the genetics data worksheet and show your reasoning for each conclusion.",
-        steps: [
-          "Review the genetics model",
-          "Complete data tables",
-          "Show calculations",
-          "Answer analysis questions",
-          "Check your reasoning",
-        ],
       },
       {
         id: 11,
         day: "04",
         weekday: "FRI",
-        title: "Midterm study guide",
+        title: "Exam 1",
         course: "HIST 230",
-        type: "Exam prep",
+        type: "Exam",
         effort: "3 hours",
-        description:
-          "Create a complete study guide covering lectures, readings, and primary sources from weeks 1–5.",
-        steps: [
-          "Organize notes by theme",
-          "Create an event timeline",
-          "Define key terms",
-          "Draft essay outlines",
-          "Complete a recall test",
-        ],
       },
       {
         id: 12,
         day: "06",
         weekday: "SUN",
-        title: "Composition draft",
+        title: "Composition project",
         course: "ART 145",
-        type: "Studio",
+        type: "Project",
         effort: "4 hours",
-        description:
-          "Develop a refined composition draft that applies feedback from your sketchbook review.",
-        steps: [
-          "Revisit critique notes",
-          "Choose a direction",
-          "Create three variations",
-          "Refine the strongest draft",
-          "Document your process",
-        ],
       },
     ],
   },
@@ -260,7 +151,6 @@ const weeks: Week[] = [
 
 function Timeline() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
-  const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [activeWeek, setActiveWeek] = useState(0);
   const [showSemester, setShowSemester] = useState(false);
 
@@ -281,18 +171,9 @@ function Timeline() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedTask, showSemester]);
 
-  const openTask = (task: Task) => {
-    setSelectedTask(task);
-    setCompletedSteps([]);
-  };
+  const openTask = (task: Task) => setSelectedTask(task);
 
-  const toggleStep = (index: number) => {
-    setCompletedSteps((current) =>
-      current.includes(index)
-        ? current.filter((step) => step !== index)
-        : [...current, index],
-    );
-  };
+  const priority = selectedTask ? getPriority(selectedTask.type) : null;
 
   return (
     <>
@@ -538,64 +419,63 @@ function Timeline() {
                 </div>
               </div>
 
-              <p className="mb-7 text-sm leading-6 text-zinc-600">
-                {selectedTask.description}
-              </p>
-
               <div className="mb-8 grid grid-cols-2 gap-3">
-                <div className="info-tile">
-                  <span>EST. EFFORT</span>
-                  <strong>{selectedTask.effort}</strong>
-                </div>
                 <div className="info-tile">
                   <span>TYPE</span>
                   <strong>{selectedTask.type}</strong>
                 </div>
-              </div>
-
-              <div className="mb-5 flex items-end justify-between">
-                <div>
-                  <p className="eyebrow mb-2">PLAN OF ACTION</p>
-                  <h3 className="text-lg font-semibold tracking-[-0.03em]">
-                    Break it into steps
-                  </h3>
-                </div>
-                <span className="text-xs text-zinc-600">
-                  {completedSteps.length}/{selectedTask.steps.length}
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {selectedTask.steps.map((step, index) => {
-                  const done = completedSteps.includes(index);
-                  return (
-                    <button
-                      className={`plan-step ${done ? "is-done" : ""}`}
-                      key={step}
-                      onClick={() => toggleStep(index)}
-                    >
-                      <span className="step-number">
-                        {done ? (
-                          <Icon name="check" size={14} />
-                        ) : (
-                          String(index + 1).padStart(2, "0")
-                        )}
+                {priority && (
+                  <div className="info-tile">
+                    <span>PRIORITY</span>
+                    <div className="flex items-center justify-between gap-3">
+                      <strong>{priority.label}</strong>
+                      <span
+                        aria-hidden="true"
+                        className="priority-meter"
+                      >
+                        {priorityOrder.map((item, index) => (
+                          <i
+                            className={
+                              index < priorityOrder.length - priority.rank + 1
+                                ? "is-filled"
+                                : ""
+                            }
+                            key={item.type}
+                          />
+                        ))}
                       </span>
-                      <span>{step}</span>
-                    </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mb-5">
+                <p className="eyebrow mb-2">PRIORITY ORDER</p>
+                <h3 className="text-lg font-semibold tracking-[-0.03em]">
+                  Based on grading criteria
+                </h3>
+              </div>
+
+              <ol className="space-y-2">
+                {priorityOrder.map((item, index) => {
+                  const isCurrent = item.type === selectedTask.type;
+                  return (
+                    <li
+                      aria-current={isCurrent ? "true" : undefined}
+                      className={`priority-item ${
+                        isCurrent ? "is-current" : ""
+                      }`}
+                      key={item.type}
+                    >
+                      <span className="priority-rank">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="flex-1">{item.type}</span>
+                      <small>{item.note}</small>
+                    </li>
                   );
                 })}
-              </div>
-            </div>
-
-            <div className="border-t border-black/8 p-5 sm:px-8">
-              <button
-                className="primary-button"
-                onClick={() => setSelectedTask(null)}
-              >
-                Add plan to my week
-                <Icon name="arrow" size={16} />
-              </button>
+              </ol>
             </div>
           </div>
         )}

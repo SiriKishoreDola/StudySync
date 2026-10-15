@@ -38,9 +38,25 @@ button {
 .app-shell {
   position: relative;
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 640px;
   flex-direction: column;
   overflow: hidden;
+}
+
+.app-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  width: 100%;
+  max-width: 1380px;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  margin: 0 auto;
+  padding: clamp(14px, 2.5vh, 28px) clamp(20px, 3vw, 44px)
+    clamp(20px, 4vh, 40px);
 }
 
 .ambient {
@@ -198,7 +214,7 @@ button {
 
 .timeline-panel {
   display: flex;
-  min-height: 490px;
+  min-height: 0;
   flex: 1;
   flex-direction: column;
   overflow: hidden;
@@ -563,8 +579,10 @@ button {
   width: min(1040px, 100%);
   flex: 1;
   flex-direction: column;
+  min-height: 0;
   align-self: center;
   justify-content: center;
+  overflow-y: auto;
   padding: 5px 0 18px;
 }
 
@@ -995,7 +1013,7 @@ button {
   background: rgba(255, 255, 255, 0.3);
 }
 
-.info-tile span {
+.info-tile > span {
   display: block;
   margin-bottom: 7px;
   color: #52525b;
@@ -1009,7 +1027,39 @@ button {
   font-weight: 600;
 }
 
-.plan-step {
+.priority-meter {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.priority-meter i {
+  width: 3px;
+  border-radius: 2px;
+  background: rgba(24, 24, 27, 0.14);
+}
+
+.priority-meter i:nth-child(1) {
+  height: 5px;
+}
+
+.priority-meter i:nth-child(2) {
+  height: 8px;
+}
+
+.priority-meter i:nth-child(3) {
+  height: 11px;
+}
+
+.priority-meter i:nth-child(4) {
+  height: 14px;
+}
+
+.priority-meter i.is-filled {
+  background: #27272a;
+}
+
+.priority-item {
   display: flex;
   width: 100%;
   align-items: center;
@@ -1019,17 +1069,17 @@ button {
   border-radius: 12px;
   color: #3f3f46;
   font-size: 12px;
-  text-align: left;
   background: rgba(255, 255, 255, 0.3);
   transition: 160ms ease;
 }
 
-.plan-step:hover {
-  border-color: rgba(24, 24, 27, 0.16);
-  background: rgba(255, 255, 255, 0.57);
+.priority-item small {
+  color: #52525b;
+  font-size: 9px;
+  text-align: right;
 }
 
-.step-number {
+.priority-rank {
   display: grid;
   flex: 0 0 auto;
   width: 28px;
@@ -1043,34 +1093,16 @@ button {
   transition: 160ms ease;
 }
 
-.plan-step.is-done {
-  color: #52525b;
-  text-decoration: line-through;
+.priority-item.is-current {
+  border-color: rgba(24, 24, 27, 0.16);
+  color: #18181b;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.62);
 }
 
-.plan-step.is-done .step-number {
+.priority-item.is-current .priority-rank {
   color: white;
   background: #27272a;
-}
-
-.primary-button {
-  display: flex;
-  width: 100%;
-  height: 48px;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 18px;
-  border: 0;
-  border-radius: 12px;
-  color: white;
-  font-size: 12px;
-  font-weight: 600;
-  background: #18181b;
-  transition: 180ms ease;
-}
-
-.primary-button:hover {
-  background: #3f3f46;
 }
 
 @media (max-width: 720px) {
@@ -1084,6 +1116,15 @@ button {
 
   .progress-compact {
     display: none;
+  }
+
+  .app-shell {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .app-content {
+    padding: 20px 20px 24px;
   }
 
   .timeline-panel {
@@ -1235,10 +1276,6 @@ button {
 
   .intro-row {
     min-height: 66px;
-  }
-
-  .timeline-panel {
-    min-height: 460px;
   }
 
   .timeline-toolbar {
