@@ -1,42 +1,64 @@
+const details = [
+  {
+    label: "SCHOOL",
+    value: "Northwood University",
+    note: "Undergraduate · Year 2",
+  },
+  {
+    label: "EMAIL",
+    value: "jordan.davis@northwood.edu",
+    note: "Primary student email",
+  },
+];
+
+const semester = [
+  { label: "SEMESTER START", value: "September 3, 2026", note: "Fall semester" },
+  { label: "SEMESTER END", value: "December 18, 2026", note: "Fall semester" },
+  { label: "TIME ZONE", value: "Eastern Time (ET)", note: "America / New York" },
+];
+
+function DetailGrid({
+  items,
+}: {
+  items: { label: string; value: string; note: string }[];
+}) {
+  return (
+    <dl className="mt-4 grid gap-6 sm:grid-cols-2">
+      {items.map((item) => (
+        <div key={item.label}>
+          <dt className="text-[11px] font-semibold">{item.label}</dt>
+          <dd className="mt-1 font-semibold [overflow-wrap:anywhere]">
+            {item.value}
+          </dd>
+          <dd className="text-sm">{item.note}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
 function Profile() {
   return (
     <section className="profile-page">
-      <div className="profile-heading">
-        <div className="profile-avatar" aria-label="Profile initials JD">
-          <span>JD</span>
-          <i />
+      <div className="flex flex-col items-center gap-2 py-1 text-center">
+        <div className="avatar" aria-hidden="true">
+          JD
         </div>
-        <div className="eyebrow justify-center">STUDENT PROFILE</div>
-        <h1>Jordan Davis</h1>
-        <p>they / them</p>
+        <p className="text-[11px] font-semibold">STUDENT PROFILE</p>
+        <h1 className="text-[28px] font-semibold">Jordan Davis</h1>
+        <p className="text-sm">they / them</p>
       </div>
 
-      <div className="profile-info-grid">
-        <div className="profile-info-item">
-          <span className="profile-info-label">SCHOOL</span>
-          <strong>Northwood University</strong>
-          <small>Undergraduate · Year 2</small>
-        </div>
-        <div className="profile-info-item">
-          <span className="profile-info-label">EMAIL</span>
-          <strong>jordan.davis@northwood.edu</strong>
-          <small>Primary student email</small>
-        </div>
-        <div className="profile-info-item">
-          <span className="profile-info-label">SEMESTER START</span>
-          <strong>September 3, 2026</strong>
-          <small>Fall semester</small>
-        </div>
-        <div className="profile-info-item">
-          <span className="profile-info-label">SEMESTER END</span>
-          <strong>December 18, 2026</strong>
-          <small>Fall semester</small>
-        </div>
-        <div className="profile-info-item">
-          <span className="profile-info-label">TIME ZONE</span>
-          <strong>Eastern Time (ET)</strong>
-          <small>America / New York</small>
-        </div>
+      <div className="grid flex-1 gap-5 lg:grid-cols-2">
+        <section className="surface p-6">
+          <h2 className="text-lg font-semibold">Student details</h2>
+          <DetailGrid items={details} />
+        </section>
+
+        <section className="surface p-6">
+          <h2 className="text-lg font-semibold">Semester</h2>
+          <DetailGrid items={semester} />
+        </section>
       </div>
     </section>
   );

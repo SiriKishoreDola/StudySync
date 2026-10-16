@@ -19,16 +19,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} antialiased`}>
       <body>
-        <main className="app-shell text-zinc-900">
-          <div className="ambient ambient-one" />
-          <div className="ambient ambient-two" />
-
+        <div className="studysync-demo app-shell">
+          <a className="skip-link" href="#main-content">
+            Skip to content
+          </a>
           <Topbar />
-
-          <div className="app-content">
+          <main className="demo-main" id="main-content">
             {children}
-          </div>
-        </main>
+          </main>
+        </div>
       </body>
     </html>
   );

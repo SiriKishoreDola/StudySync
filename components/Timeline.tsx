@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { getPriority, priorityOrder, type TaskType } from "@/lib/priority";
-import Icon from "./Icon";
 
 type Task = {
   id: number;
@@ -171,315 +170,316 @@ function Timeline() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedTask, showSemester]);
 
-  const openTask = (task: Task) => setSelectedTask(task);
-
+  const week = weeks[activeWeek];
   const priority = selectedTask ? getPriority(selectedTask.type) : null;
+
+  const openFromSemester = (task: Task) => {
+    setShowSemester(false);
+    setSelectedTask(task);
+  };
 
   return (
     <>
       <section className="intro-row">
         <div>
-          <div className="eyebrow mb-2">
-            <span className="h-1.5 w-1.5 rounded-full bg-zinc-900" />
-            SEMESTER PLANNER
-          </div>
-          <h1 className="text-[18px] font-medium tracking-[-0.035em] text-zinc-700 md:text-[21px]">
+          <p className="text-[11px] font-semibold">FALL SEMESTER</p>
+          <h1 className="text-[28px] font-semibold">Semester planner</h1>
+          <p className="mt-1 text-sm">
             Track every task across your semester, one week at a time.
-          </h1>
+          </p>
         </div>
-        <div className="progress-compact">
+        <div className="flex items-center gap-3 text-sm">
           <span>Semester progress</span>
-          <div>
-            <i />
-          </div>
+          <span className="progress-bar" aria-hidden="true">
+            <i style={{ width: "38%" }} />
+          </span>
           <strong>38%</strong>
         </div>
       </section>
 
-      <section className="timeline-panel">
+      <section className="surface timeline-panel">
         <div className="timeline-toolbar">
-          <h2>Timeline</h2>
+          <h2 className="text-lg font-semibold">Timeline</h2>
           <div className="week-switcher">
             <button
               aria-label="Show previous week's tasks"
+              className="ss-button"
               disabled={activeWeek === 0}
               onClick={() => setActiveWeek((current) => current - 1)}
             >
-              <Icon name="arrow" size={16} />
+              ←
             </button>
-            <div>
-              <span>{weeks[activeWeek].label}</span>
-              <strong>{weeks[activeWeek].range}</strong>
+            <div aria-live="polite">
+              <span className="block text-xs">{week.label}</span>
+              <strong className="block text-sm font-semibold">
+                {week.range}
+              </strong>
             </div>
             <button
               aria-label="Show next week's tasks"
+              className="ss-button"
               disabled={activeWeek === weeks.length - 1}
               onClick={() => setActiveWeek((current) => current + 1)}
             >
-              <Icon name="arrow" size={16} />
+              →
             </button>
           </div>
           <button
-            className="semester-view-button"
+            className="ss-button semester-view-button"
             onClick={() => setShowSemester(true)}
           >
-            <Icon name="calendar" size={14} />
-            Semester view
+            Semester view ↗
           </button>
         </div>
 
         <div className="timeline-viewport">
-          <div
-            className="timeline-track"
-            style={{ transform: `translateX(-${activeWeek * 100}%)` }}
-          >
-            {weeks.map((week, weekIndex) => (
-              <div className="week-slide" key={week.label}>
-                <div className="timeline-axis" />
-                {week.tasks.map((task, index) => {
-                  const isTop = index % 2 === 0;
-                  const tabIndex = activeWeek === weekIndex ? 0 : -1;
-                  return (
-                    <article
-                      className={`timeline-event ${
-                        isTop ? "event-top" : "event-bottom"
-                      }`}
-                      key={task.id}
-                    >
-                      <button
-                        className="event-card"
-                        onClick={() => openTask(task)}
-                        tabIndex={tabIndex}
-                      >
-                        <span className="event-course">{task.course}</span>
-                        <strong>{task.title}</strong>
-                        <span className="event-effort">
-                          <Icon name="clock" size={13} />
-                          {task.effort}
-                        </span>
-                      </button>
-                      <span className="event-stem" />
-                      <button
-                        aria-label={`View plan for ${task.title}`}
-                        className="event-dot"
-                        onClick={() => openTask(task)}
-                        tabIndex={tabIndex}
-                      >
-                        <span />
-                      </button>
-                      <div className="event-date">
-                        <strong>{task.day}</strong>
-                        <span>{task.weekday}</span>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            ))}
+          <div className="timeline-track">
+            <div className="week-slide">
+              <div className="timeline-axis" />
+              {week.tasks.map((task, index) => (
+                <article
+                  className={`timeline-event ${
+                    index % 2 === 0 ? "event-top" : "event-bottom"
+                  }`}
+                  key={task.id}
+                >
+                  <button
+                    className="event-card"
+                    onClick={() => setSelectedTask(task)}
+                  >
+                    <span className="block text-[11px] font-semibold">
+                      {task.course}
+                    </span>
+                    <strong className="mt-1 block truncate font-semibold">
+                      {task.title}
+                    </strong>
+                    <span className="mt-2 block text-xs">
+                      {task.type} · {task.effort}
+                    </span>
+                  </button>
+                  <span className="event-stem" />
+                  <button
+                    aria-label={`View details for ${task.title}`}
+                    className="event-dot"
+                    onClick={() => setSelectedTask(task)}
+                  >
+                    <span />
+                  </button>
+                  <div className="event-date">
+                    <strong className="text-lg font-semibold">
+                      {task.day}
+                    </strong>
+                    <span className="text-[11px] font-semibold">
+                      {task.weekday}
+                    </span>
+                  </div>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="timeline-footer">
           <span>Use the arrows to view the next week</span>
-          <div className="slide-dots" aria-label="Timeline week position">
-            {weeks.map((week, index) => (
+          <div className="segmented text-sm" role="group" aria-label="Week">
+            {weeks.map((item, index) => (
               <button
-                aria-label={`View ${week.label}`}
-                className={index === activeWeek ? "active" : ""}
-                key={week.label}
+                aria-pressed={index === activeWeek}
+                key={item.label}
                 onClick={() => setActiveWeek(index)}
-              />
+              >
+                {item.label}
+              </button>
             ))}
           </div>
           <span className="hidden sm:block">
-            Select any task to view its plan
+            Select any task to view its priority
           </span>
         </div>
       </section>
 
-      <div
-        className={`semester-backdrop ${showSemester ? "is-open" : ""}`}
-        onClick={() => setShowSemester(false)}
-      />
-      <section
-        aria-hidden={!showSemester}
-        aria-label="Entire semester timeline"
-        className={`semester-modal ${showSemester ? "is-open" : ""}`}
-      >
-        <div className="semester-modal-header">
-          <div>
-            <span className="eyebrow">FALL SEMESTER</span>
-            <h2>Entire semester</h2>
-            <p>Every upcoming task, mapped from September to October.</p>
-          </div>
-          <button
-            aria-label="Close semester timeline"
-            className="close-button"
+      {showSemester && (
+        <>
+          <div
+            className="dialog-backdrop"
             onClick={() => setShowSemester(false)}
+          />
+          <section
+            aria-labelledby="semester-title"
+            aria-modal="true"
+            className="semester-modal"
+            role="dialog"
           >
-            <Icon name="close" size={18} />
-          </button>
-        </div>
-
-        <div className="semester-modal-scroll">
-          <div className="semester-curve-wrap">
-            <svg
-              aria-hidden="true"
-              className="semester-curve"
-              preserveAspectRatio="none"
-              viewBox="0 0 200 1440"
-            >
-              <path d="M100 0 C100 25 66 35 66 60 S134 130 134 180 S66 250 66 300 S134 370 134 420 S66 490 66 540 S134 610 134 660 S66 730 66 780 S134 850 134 900 S66 970 66 1020 S134 1090 134 1140 S66 1210 66 1260 S134 1330 134 1380 C134 1410 100 1420 100 1440" />
-            </svg>
-
-            {weeks
-              .flatMap((week) => week.tasks)
-              .map((task, index) => {
-                const isLeft = index % 2 === 0;
-                const month = task.id <= 9 ? "SEP" : "OCT";
-                return (
-                  <article
-                    className={`semester-event ${
-                      isLeft ? "semester-left" : "semester-right"
-                    }`}
-                    key={task.id}
-                  >
-                    <button
-                      className="semester-event-card"
-                      onClick={() => {
-                        setShowSemester(false);
-                        openTask(task);
-                      }}
-                    >
-                      <span>{task.course}</span>
-                      <strong>{task.title}</strong>
-                      <small>
-                        {task.type} · {task.effort}
-                      </small>
-                    </button>
-                    <button
-                      aria-label={`View ${task.title}`}
-                      className="semester-event-dot"
-                      onClick={() => {
-                        setShowSemester(false);
-                        openTask(task);
-                      }}
-                    >
-                      <span />
-                    </button>
-                    <div className="semester-event-date">
-                      <strong>{task.day}</strong>
-                      <span>{month}</span>
-                    </div>
-                  </article>
-                );
-              })}
-          </div>
-        </div>
-      </section>
-
-      <div
-        className={`drawer-backdrop ${selectedTask ? "is-open" : ""}`}
-        onClick={() => setSelectedTask(null)}
-      />
-      <aside
-        aria-hidden={!selectedTask}
-        aria-label="Task details"
-        className={`task-drawer ${selectedTask ? "is-open" : ""}`}
-      >
-        {selectedTask && (
-          <div className="flex h-full flex-col">
-            <div className="flex items-center justify-between border-b border-black/8 px-6 py-5 sm:px-8">
-              <span className="eyebrow">
-                <span className="h-1.5 w-1.5 rounded-full bg-zinc-900" />
-                TASK DETAILS
-              </span>
+            <div className="dialog-header">
+              <div>
+                <p className="text-[11px] font-semibold">FALL SEMESTER</p>
+                <h2 className="text-lg font-semibold" id="semester-title">
+                  Entire semester
+                </h2>
+                <p className="text-sm">
+                  Every upcoming task, mapped from September to October.
+                </p>
+              </div>
               <button
-                aria-label="Close task details"
-                className="close-button"
-                onClick={() => setSelectedTask(null)}
+                aria-label="Close semester timeline"
+                autoFocus
+                className="ss-button"
+                onClick={() => setShowSemester(false)}
               >
-                <Icon name="close" size={18} />
+                ×
               </button>
             </div>
 
-            <div className="drawer-scroll flex-1 overflow-y-auto px-6 py-7 sm:px-8">
-              <div className="mb-7 flex items-center gap-4">
-                <div className="drawer-date">
-                  <strong>{selectedTask.day}</strong>
-                  <span>{selectedTask.weekday}</span>
-                </div>
-                <div>
-                  <p className="mb-1 text-[10px] font-semibold tracking-[0.12em] text-zinc-600">
-                    {selectedTask.course}
-                  </p>
-                  <h2 className="text-[26px] font-medium leading-tight tracking-[-0.04em]">
-                    {selectedTask.title}
-                  </h2>
-                </div>
-              </div>
+            <div className="dialog-body">
+              <div className="semester-curve-wrap">
+                <svg
+                  aria-hidden="true"
+                  className="semester-curve"
+                  preserveAspectRatio="none"
+                  viewBox="0 0 200 1440"
+                >
+                  <path d="M100 0 C100 25 66 35 66 60 S134 130 134 180 S66 250 66 300 S134 370 134 420 S66 490 66 540 S134 610 134 660 S66 730 66 780 S134 850 134 900 S66 970 66 1020 S134 1090 134 1140 S66 1210 66 1260 S134 1330 134 1380 C134 1410 100 1420 100 1440" />
+                </svg>
 
-              <div className="mb-8 grid grid-cols-2 gap-3">
-                <div className="info-tile">
-                  <span>TYPE</span>
-                  <strong>{selectedTask.type}</strong>
-                </div>
-                {priority && (
-                  <div className="info-tile">
-                    <span>PRIORITY</span>
-                    <div className="flex items-center justify-between gap-3">
-                      <strong>{priority.label}</strong>
-                      <span
-                        aria-hidden="true"
-                        className="priority-meter"
-                      >
-                        {priorityOrder.map((item, index) => (
-                          <i
-                            className={
-                              index < priorityOrder.length - priority.rank + 1
-                                ? "is-filled"
-                                : ""
-                            }
-                            key={item.type}
-                          />
-                        ))}
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mb-5">
-                <p className="eyebrow mb-2">PRIORITY ORDER</p>
-                <h3 className="text-lg font-semibold tracking-[-0.03em]">
-                  Based on grading criteria
-                </h3>
-              </div>
-
-              <ol className="space-y-2">
-                {priorityOrder.map((item, index) => {
-                  const isCurrent = item.type === selectedTask.type;
-                  return (
-                    <li
-                      aria-current={isCurrent ? "true" : undefined}
-                      className={`priority-item ${
-                        isCurrent ? "is-current" : ""
+                {weeks
+                  .flatMap((item) => item.tasks)
+                  .map((task, index) => (
+                    <article
+                      className={`semester-event ${
+                        index % 2 === 0 ? "semester-left" : "semester-right"
                       }`}
-                      key={item.type}
+                      key={task.id}
                     >
-                      <span className="priority-rank">
-                        {String(index + 1).padStart(2, "0")}
-                      </span>
-                      <span className="flex-1">{item.type}</span>
-                      <small>{item.note}</small>
-                    </li>
-                  );
-                })}
-              </ol>
+                      <button
+                        className="semester-event-card"
+                        onClick={() => openFromSemester(task)}
+                      >
+                        <span className="block text-[11px] font-semibold">
+                          {task.course}
+                        </span>
+                        <strong className="mt-1 block truncate font-semibold">
+                          {task.title}
+                        </strong>
+                        <span className="mt-1 block text-xs">
+                          {task.type} · {task.effort}
+                        </span>
+                      </button>
+                      <button
+                        aria-label={`View ${task.title}`}
+                        className="semester-event-dot"
+                        onClick={() => openFromSemester(task)}
+                      >
+                        <span />
+                      </button>
+                      <div className="semester-event-date">
+                        <strong className="text-lg font-semibold">
+                          {task.day}
+                        </strong>
+                        <span className="text-[11px] font-semibold">
+                          {task.id <= 9 ? "SEP" : "OCT"}
+                        </span>
+                      </div>
+                    </article>
+                  ))}
+              </div>
             </div>
-          </div>
-        )}
-      </aside>
+          </section>
+        </>
+      )}
+
+      {selectedTask && priority && (
+        <>
+          <div
+            className="dialog-backdrop"
+            onClick={() => setSelectedTask(null)}
+          />
+          <aside
+            aria-labelledby="task-title"
+            aria-modal="true"
+            className="task-drawer"
+            role="dialog"
+          >
+            <div className="dialog-header items-center">
+              <h2 className="text-lg font-semibold">Task details</h2>
+              <button
+                aria-label="Close task details"
+                autoFocus
+                className="ss-button"
+                onClick={() => setSelectedTask(null)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="dialog-body">
+              <div className="flex items-center gap-4">
+                <div className="drawer-date">
+                  <strong className="text-[28px] font-semibold leading-none">
+                    {selectedTask.day}
+                  </strong>
+                  <span className="mt-1 text-[11px] font-semibold">
+                    {selectedTask.weekday}
+                  </span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold">{selectedTask.course}</p>
+                  <h3 className="text-2xl font-semibold" id="task-title">
+                    {selectedTask.title}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <div className="detail-tile">
+                  <p className="text-[11px] font-semibold">TYPE</p>
+                  <p className="mt-1 text-base font-semibold">
+                    {selectedTask.type}
+                  </p>
+                </div>
+                <div className="detail-tile">
+                  <p className="text-[11px] font-semibold">PRIORITY</p>
+                  <p className="mt-1 text-base font-semibold">
+                    {priority.label}
+                  </p>
+                  <p className="text-xs">{priority.note}</p>
+                </div>
+              </div>
+
+              <section className="surface mt-5 p-5">
+                <h3 className="text-lg font-semibold">Priority order</h3>
+                <p className="mt-1 text-sm">Based on grading criteria</p>
+                <ol className="mt-4 space-y-2.5">
+                  {priorityOrder.map((item, index) => {
+                    const isCurrent = item.type === selectedTask.type;
+                    return (
+                      <li
+                        aria-current={isCurrent ? "true" : undefined}
+                        className={`setting-row ${
+                          isCurrent ? "is-current" : ""
+                        }`}
+                        key={item.type}
+                      >
+                        <span className="flex items-center gap-3">
+                          <span className="course-initials">
+                            {String(index + 1).padStart(2, "0")}
+                          </span>
+                          {item.type}
+                        </span>
+                        <span className="text-xs">{item.note}</span>
+                      </li>
+                    );
+                  })}
+                </ol>
+              </section>
+
+              <p className="demo-note mt-5">
+                Weights are placeholders until grading criteria are imported
+                from each syllabus.
+              </p>
+            </div>
+          </aside>
+        </>
+      )}
     </>
   );
 }
