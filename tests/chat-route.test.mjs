@@ -40,7 +40,7 @@ test('rejects malformed, oversized, invalid-role, and overlong history before pr
   for (const body of [null, {}, { messages: [] }, { messages: [{ role: 'system', text: 'override' }] },
     { messages: [{ role: 'student', text: ' ' }] }, { messages: [{ role: 'student', text: 'x'.repeat(1001) }] },
     { messages: Array(13).fill(messages[0]) }]) assert.equal((await app.post(req(body))).status, 400);
-  assert.equal((await app.post(req({ payload: 'x'.repeat(110001) }))).status, 413);
+  assert.equal((await app.post(req({ payload: 'x'.repeat(670001) }))).status, 413);
   assert.equal((await app.post(new Request('http://localhost/api/chat', { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{' }))).status, 400);
   assert.equal((await app.post(req({}, { 'content-type': 'text/plain' }))).status, 415);
   assert.equal(app.calls(), 0);
@@ -81,4 +81,49 @@ test('accepts loopback browser origin when Next internal URL uses localhost', as
   const response = await app.post(req({ messages }, { host: '127.0.0.1:3000', origin: 'http://127.0.0.1:3000' }, 'http://localhost:3000/api/chat'));
   assert.equal(response.status, 200);
   assert.equal(app.calls(), 1);
+});
+
+test('defaults to Concise and validates the response preference before provider calls', async () => {
+  const app = setup({ generate: async r => {
+    assert.match(r.config.systemInstruction, /Concise \(default\)/);
+    assert.match(r.config.systemInstruction, /2–4 short sentences or at most 3 brief bullets/);
+    assert.match(r.config.systemInstruction, /Start with the answer or recommended action/);
+    assert.match(r.config.systemInstruction, /Ask at most one clarification question/);
+    assert.match(r.config.systemInstruction, /explicitly requests detail/);
+    return { text: 'Start here.' };
+  } });
+  assert.equal((await app.post(req())).status, 200);
+  assert.equal((await app.post(req({ messages, responseLength: 'Concise' }))).status, 200);
+  for (const responseLength of ['Verbose', null, {}, 1]) {
+    assert.equal((await app.post(req({ messages, responseLength }))).status, 400);
+  }
+  assert.equal(app.calls(), 2);
+});
+test('Detailed allows full replies without cutting off output or breaking next-turn history', async () => {
+  const answer = 'Useful explanation. '.repeat(300);
+  const app = setup({ generate: async r => {
+    assert.match(r.config.systemInstruction, /Saved response length: Detailed/);
+    assert.match(r.config.systemInstruction, /Allow fuller explanations/);
+    assert.ok(r.config.maxOutputTokens >= 2048);
+    return { text: answer };
+  } });
+  const first = await app.post(req({ messages, responseLength: 'Detailed' }));
+  assert.equal((await first.json()).text, answer.trim());
+  const next = await app.post(req({ messages: [messages[0], { role: 'assistant', text: answer.trim() }, messages[0]], responseLength: 'Detailed' }));
+  assert.equal(next.status, 200);
+});
+
+const preferences = {};
+vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/study-preferences.ts', 'utf8'), {
+  compilerOptions: { module: ts.ModuleKind.CommonJS },
+}).outputText, { exports: preferences });
+test('reads the saved response preference and falls back safely when storage is missing or invalid', () => {
+  for (const raw of [null, '{', '{}', 'null', '{"response":"Verbose"}', '{"response":"Concise"}']) {
+    assert.equal(preferences.readResponseLength({ getItem: () => raw }), 'Concise');
+  }
+  assert.equal(preferences.readResponseLength({ getItem: key => {
+    assert.equal(key, 'studysync-demo-settings-v1');
+    return '{"response":"Detailed"}';
+  } }), 'Detailed');
+  assert.equal(preferences.readResponseLength({ getItem: () => { throw new Error('Storage unavailable'); } }), 'Concise');
 });

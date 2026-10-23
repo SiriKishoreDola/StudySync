@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { settingsStorageKey as storageKey } from "@/lib/study-preferences";
 
 const defaults = { zone: "America/Los_Angeles", format: "12-hour", week: "Sunday", theme: "Light", study: "Morning · 9 AM–12 PM", length: "45 minutes", response: "Concise", tone: "Encouraging" };
 type Preferences = typeof defaults;
@@ -16,7 +17,6 @@ const sections: { title: string; rows: [keyof Preferences, string, string][] }[]
   { title: "Planning", rows: [["study", "Preferred study time", "When do you usually prefer to study?"], ["length", "Preferred session length", "Use this as a starting point, not a strict schedule."]] },
   { title: "AI Assistant", rows: [["response", "Response length", "Choose how much context the assistant should include."], ["tone", "Tone", "Choose how the assistant should communicate with you."]] },
 ];
-const storageKey = "studysync-demo-settings-v1";
 
 /** Standalone form: replace local demo persistence when the real Profile page is integrated. */
 export function Settings() {
@@ -45,7 +45,7 @@ export function Settings() {
   return <section className={`settings-section ${dark ? "demo-dark" : draft.theme === "System" ? "demo-system" : ""}`} aria-labelledby="settings-title">
     <h2 id="settings-title" className="text-[22px] font-semibold">Settings</h2>
     <p className="mt-1 mb-6 text-sm">Personalize how StudySync works for you.</p>
-    <p className="demo-note mb-5">Demo only: Save stores preferences in this browser. No database save. Theme previews this Settings component; planner and assistant preferences are not connected to a backend.</p>
+    <p className="demo-note mb-5">Demo only: Save stores preferences in this browser. No database save. Theme previews this Settings component; saved response length controls Gemini replies. Other planner and assistant preferences are not connected.</p>
     <form className="surface space-y-5 p-6" onSubmit={event => {
       event.preventDefault();
       try { localStorage.setItem(storageKey, JSON.stringify(draft)); setSaved({ ...draft }); setMessage("✓ Your demo settings have been saved in this browser only."); }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { suggestedPrompts } from "@/lib/study-demo";
+import { readResponseLength, type ResponseLength } from "@/lib/study-preferences";
 
 export type AssistantScenario = "normal" | "error" | "empty";
 type Message = { role: "student" | "assistant"; text: string };
@@ -44,9 +45,12 @@ export function Assistant({ scenario = "normal" }: { scenario?: AssistantScenari
     request.current = controller;
     const timeout = setTimeout(() => controller.abort(), 30_000);
     try {
+      let responseLength: ResponseLength = "Concise";
+      // Accessing localStorage itself can throw when browser storage is blocked.
+      try { responseLength = readResponseLength(window.localStorage); } catch { /* Use Concise. */ }
       const response = await fetch("/api/chat", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: pending.current }), signal: controller.signal,
+        body: JSON.stringify({ messages: pending.current, responseLength }), signal: controller.signal,
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Gemini is unavailable. Please retry.");
