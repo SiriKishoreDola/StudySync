@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import Topbar from "@/components/Topbar";
 import "./globals.css";
 
 const inter = Inter({
@@ -19,15 +18,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${inter.variable} antialiased`}>
       <body>
-        <div className="studysync-demo app-shell">
-          <a className="skip-link" href="#main-content">
-            Skip to content
-          </a>
-          <Topbar />
-          <main className="demo-main" id="main-content">
-            {children}
-          </main>
-        </div>
+        <div className="studysync-demo app-shell">{children}</div>
       </body>
     </html>
   );

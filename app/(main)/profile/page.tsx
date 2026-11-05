@@ -1,12 +1,19 @@
+import type { Metadata } from "next";
+import { placeholderStudent } from "@/lib/placeholder-student";
+
+export const metadata: Metadata = {
+  title: "Profile · StudySync",
+};
+
 const details = [
   {
     label: "SCHOOL",
-    value: "Northwood University",
+    value: placeholderStudent.school,
     note: "Undergraduate · Year 2",
   },
   {
     label: "EMAIL",
-    value: "jordan.davis@northwood.edu",
+    value: placeholderStudent.email,
     note: "Primary student email",
   },
 ];
@@ -37,15 +44,15 @@ function DetailGrid({
   );
 }
 
-function Profile() {
+export default function ProfilePage() {
   return (
     <section className="profile-page">
       <div className="flex flex-col items-center gap-2 py-1 text-center">
         <div className="avatar" aria-hidden="true">
-          JD
+          {placeholderStudent.initials}
         </div>
         <p className="text-[11px] font-semibold">STUDENT PROFILE</p>
-        <h1 className="text-[28px] font-semibold">Jordan Davis</h1>
+        <h1 className="text-[28px] font-semibold">{placeholderStudent.name}</h1>
         <p className="text-sm">they / them</p>
       </div>
 
@@ -63,5 +70,3 @@ function Profile() {
     </section>
   );
 }
-
-export default Profile;

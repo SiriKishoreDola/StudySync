@@ -1,24 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { logIn } from "@/lib/session-actions";
 
 type View = "signin" | "signup" | "forgot" | "check-email" | "reset";
 
-// StudySync theme (from the team design guide):
-// cream #e6d8c1 page bg | surface #f8f2e9 cards/inputs | mauve #a37c76 primary
-// ink #211b19 text | border #bead99
-const fontStyle = {
-  fontFamily: "Inter, Arial, Helvetica, sans-serif",
-  lineHeight: 1.5,
-};
-const focusRing =
-  "focus-visible:[outline:3px_solid_#211b19] focus-visible:[outline-offset:3px]";
-const surface = "rounded-[14px] border border-[#bead99] bg-[#f8f2e9]";
-const inputClass = `w-full max-w-full rounded-[6px] border border-[#bead99] bg-[#f8f2e9] px-3 py-2.5 text-sm text-[#211b19] ${focusRing}`;
-const buttonBase = `rounded-[6px] border px-[15px] py-[9px] text-sm font-semibold text-[#211b19] hover:brightness-[.96] ${focusRing}`;
-const primaryButton = `${buttonBase} w-full border-[#a37c76] bg-[#a37c76]`;
-const linkButton = `font-semibold underline underline-offset-2 ${focusRing}`;
+const primaryButton = "ss-button primary w-full";
+const linkButton = "text-link font-semibold";
 
 type FieldProps = {
   label: string;
@@ -47,7 +35,7 @@ function Field({
         placeholder={placeholder}
         autoComplete={autoComplete}
         required
-        className={inputClass}
+        className="w-full"
       />
     </label>
   );
@@ -68,7 +56,6 @@ const copy: Record<View, { title: string; subtitle: string }> = {
 };
 
 export default function LoginPage() {
-  const router = useRouter();
   const [view, setView] = useState<View>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -85,16 +72,16 @@ export default function LoginPage() {
 
   // NOTE: all handlers below are mock UI behavior.
   // Replace with NextAuth / API calls when the backend is built.
-  function handleSignIn(e: React.FormEvent) {
+  async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 8) {
       setError("Incorrect email or password. Please try again.");
       return;
     }
-    router.push("/dashboard");
+    await logIn();
   }
 
-  function handleSignUp(e: React.FormEvent) {
+  async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
@@ -104,7 +91,7 @@ export default function LoginPage() {
       setError("Passwords don't match.");
       return;
     }
-    router.push("/dashboard");
+    await logIn();
   }
 
   function handleForgot(e: React.FormEvent) {
@@ -128,11 +115,8 @@ export default function LoginPage() {
   }
 
   return (
-    <main
-      className="flex min-h-screen items-center justify-center bg-[#e6d8c1] px-4 py-10 text-[#211b19]"
-      style={fontStyle}
-    >
-      <div className={`${surface} w-full max-w-md p-6`}>
+    <main className="demo-main auth-page" id="main-content">
+      <div className="surface w-full max-w-md p-6">
         <p className="mb-6 text-center text-xl font-semibold">StudySync</p>
 
         <div className="mb-6 text-center">
@@ -140,16 +124,9 @@ export default function LoginPage() {
           <p className="mt-1 text-sm">{copy[view].subtitle}</p>
         </div>
 
-        {notice && (
-          <p className="mb-4 border-l-[3px] border-[#a37c76] pl-3 text-[13px]">
-            {notice}
-          </p>
-        )}
+        {notice && <p className="demo-note mb-4">{notice}</p>}
         {error && (
-          <p
-            role="alert"
-            className="mb-4 rounded-[6px] border border-[#a37c76] bg-[#f8f2e9] px-3 py-2 text-sm font-semibold"
-          >
+          <p role="alert" className="alert-box mb-4">
             {error}
           </p>
         )}
@@ -176,7 +153,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => go("forgot")}
-                className={`mt-2 text-sm underline underline-offset-2 ${focusRing}`}
+                className="text-link mt-2 text-sm"
               >
                 Forgot password?
               </button>
@@ -289,7 +266,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => go("reset")}
-                className={`underline underline-offset-2 ${focusRing}`}
+                className="text-link"
               >
                 open reset link
               </button>

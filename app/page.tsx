@@ -1,5 +1,5 @@
-import Timeline from "@/components/Timeline";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return <Timeline />;
+  redirect("/login");
 }

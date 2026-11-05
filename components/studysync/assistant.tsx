@@ -58,7 +58,7 @@ export function Assistant() {
     }
   }
   return <>
-    <button ref={launcher} className="ss-button primary assistant-launcher" aria-expanded={open} aria-controls="study-assistant" onClick={() => { setOpen(true); if (!messages.length && !demoDeadlines.length) setState("empty"); }}>Ask StudySync <span aria-hidden="true">↗</span></button>
+    <button ref={launcher} className="ss-button primary chat-launcher" aria-label="Ask StudySync" aria-expanded={open} aria-controls="study-assistant" onClick={() => { setOpen(true); if (!messages.length && !demoDeadlines.length) setState("empty"); }}><svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 20l1.1-4.9A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z" /></svg></button>
     {open && <><div className="assistant-backdrop" onClick={dismiss} aria-hidden="true" /><aside ref={panel} id="study-assistant" className="assistant-panel" role="dialog" aria-modal="true" aria-labelledby="assistant-title" onKeyDown={event => {
       if (event.key === "Escape") { event.preventDefault(); dismiss(); }
       if (event.key === "Tab") {
