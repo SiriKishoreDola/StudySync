@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type Assignment = {
   id: number;
@@ -12,18 +12,6 @@ type Assignment = {
   type: "assignment" | "quiz" | "exam";
   completed: boolean;
 };
-
-// MOCK DATA: replace with a fetch to the dashboard API once the backend exists.
-const initialAssignments: Assignment[] = [
-  { id: 1, course: "Research Methods", name: "Research proposal draft", dueDate: "2026-10-16", weight: 10, type: "assignment", completed: false },
-  { id: 2, course: "Linear Algebra", name: "Problem set 06", dueDate: "2026-10-16", weight: 5, type: "assignment", completed: false },
-  { id: 3, course: "Modern Literature", name: "Reading response", dueDate: "2026-10-19", weight: 5, type: "assignment", completed: false },
-  { id: 4, course: "Cognitive Psychology", name: "Midterm review quiz", dueDate: "2026-10-20", weight: 10, type: "quiz", completed: false },
-  { id: 5, course: "General Chemistry", name: "Lab report: Kinetics", dueDate: "2026-10-21", weight: 15, type: "assignment", completed: false },
-  { id: 6, course: "Linear Algebra", name: "Midterm exam", dueDate: "2026-10-23", weight: 25, type: "exam", completed: false },
-  { id: 7, course: "Linear Algebra", name: "Problem set 05", dueDate: "2026-10-12", weight: 5, type: "assignment", completed: true },
-  { id: 8, course: "General Chemistry", name: "Pre-lab questions", dueDate: "2026-10-09", weight: 5, type: "assignment", completed: true },
-];
 
 // Fixed "today" so the mock page looks the same every time. Use new Date() later.
 const TODAY = new Date("2026-10-15");
@@ -64,12 +52,55 @@ function formatDate(iso: string) {
 }
 
 export default function DashboardPage() {
-  const [assignments, setAssignments] = useState(initialAssignments);
+  const [assignments, setAssignments] = useState<Assignment[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  function toggle(id: number) {
+  // Load assignments from the API when the page opens.
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await fetch("/api/dashboard");
+        if (!res.ok) throw new Error("Request failed");
+        const data = await res.json();
+        if (!cancelled) setAssignments(data.assignments);
+      } catch {
+        if (!cancelled) setError("Couldn't load your assignments. Please refresh.");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Update the checkbox right away, then save it. Undo if saving fails.
+  async function toggle(id: number) {
+    const current = assignments.find((a) => a.id === id);
+    if (!current) return;
+    const next = !current.completed;
+
+    setError("");
     setAssignments((prev) =>
-      prev.map((a) => (a.id === id ? { ...a, completed: !a.completed } : a)),
+      prev.map((a) => (a.id === id ? { ...a, completed: next } : a)),
     );
+
+    try {
+      const res = await fetch(`/api/requirements/${id}/complete`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ completed: next }),
+      });
+      if (!res.ok) throw new Error("Request failed");
+    } catch {
+      setAssignments((prev) =>
+        prev.map((a) => (a.id === id ? { ...a, completed: !next } : a)),
+      );
+      setError("Couldn't save that change. Please try again.");
+    }
   }
 
   const sorted = [...assignments].sort((a, b) =>
@@ -138,6 +169,15 @@ export default function DashboardPage() {
           </Link>
         </div>
 
+        {error && (
+          <p
+            role="alert"
+            className="rounded-[6px] border border-[#a37c76] bg-[#f8f2e9] px-3 py-2 text-sm font-semibold"
+          >
+            {error}
+          </p>
+        )}
+
         {/* Next deadline callout */}
         {nextDeadline && (
           <div className={`${surface} p-5`}>
@@ -189,6 +229,20 @@ export default function DashboardPage() {
                   </tr>
                 </thead>
                 <tbody>
+                  {loading && (
+                    <tr className="border-t border-[#bead99]">
+                      <td colSpan={5} className="px-5 py-4">
+                        Loading assignments...
+                      </td>
+                    </tr>
+                  )}
+                  {!loading && sorted.length === 0 && (
+                    <tr className="border-t border-[#bead99]">
+                      <td colSpan={5} className="px-5 py-4">
+                        No assignments yet.
+                      </td>
+                    </tr>
+                  )}
                   {sorted.map((a) => (
                     <tr
                       key={a.id}
