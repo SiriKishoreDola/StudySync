@@ -29,11 +29,26 @@ const initialAssignments: Assignment[] = [
 const TODAY = new Date("2026-10-15");
 const DAY_MS = 86400000;
 
+// StudySync theme (from the team design guide):
+// cream #e6d8c1 page bg | surface #f8f2e9 cards | mauve #a37c76 primary/selected
+// ink #211b19 text | border #bead99 | avatar #2d2826
+const fontStyle = {
+  fontFamily: "Inter, Arial, Helvetica, sans-serif",
+  lineHeight: 1.5,
+};
+const focusRing =
+  "focus-visible:[outline:3px_solid_#211b19] focus-visible:[outline-offset:3px]";
+const surface = "rounded-[14px] border border-[#bead99] bg-[#f8f2e9]";
+const primaryButton = `inline-block rounded-[6px] border border-[#a37c76] bg-[#a37c76] px-[15px] py-[9px] text-sm font-semibold text-[#211b19] hover:brightness-[.96] ${focusRing}`;
+const navLink = `whitespace-nowrap rounded-[4px] px-4 py-2 text-sm ${focusRing}`;
+
 const navItems = [
   { label: "Dashboard", href: "/dashboard" },
   { label: "Timeline", href: "/timeline" },
   { label: "Upload", href: "/upload" },
   { label: "My Courses", href: "/courses" },
+  { label: "Profile", href: "/profile" },
+  { label: "Settings", href: "/settings" },
 ];
 
 function daysUntil(iso: string) {
@@ -90,194 +105,180 @@ export default function DashboardPage() {
   const heavy = weekTotal >= 4;
 
   return (
-    <div className="flex min-h-screen bg-gray-50 text-gray-900">
-      {/* Sidebar (Chat lives in the floating bubble only) */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-gray-200 bg-white px-4 py-6 md:flex">
-        <p className="mb-8 px-2 text-lg font-bold tracking-tight">StudySync</p>
-        <nav className="flex flex-1 flex-col gap-1">
+    <div className="min-h-screen bg-[#e6d8c1] text-[#211b19]" style={fontStyle}>
+      {/* Top nav (Chat lives in the floating bubble only) */}
+      <header className="flex min-h-[72px] items-center gap-4 border-b border-[#bead99] bg-[#f8f2e9] px-4 py-[15px] sm:px-7">
+        <p className="shrink-0 text-xl font-semibold">StudySync</p>
+        <nav className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto">
           {navItems.map((item) => (
             <Link
               key={item.label}
               href={item.href}
-              className={`rounded-lg px-3 py-2 text-sm font-medium ${
-                item.label === "Dashboard"
-                  ? "bg-gray-100 text-gray-900"
-                  : "text-gray-500 hover:bg-gray-50 hover:text-gray-900"
+              className={`${navLink} ${
+                item.label === "Dashboard" ? "bg-[#a37c76] font-semibold" : ""
               }`}
             >
               {item.label}
             </Link>
           ))}
         </nav>
-        <div className="flex flex-col gap-1 border-t border-gray-200 pt-4">
-          <Link href="/profile" className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900">
-            Profile
-          </Link>
-          <Link href="/settings" className="rounded-lg px-3 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 hover:text-gray-900">
-            Settings
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#2d2826] text-sm font-semibold text-[#f8f2e9]">
+          A
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-[1280px] space-y-5 px-4 pb-[110px] pt-6 sm:px-16 sm:pt-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-[28px] font-semibold">Good evening, Abhishek</h1>
+            <p className="mt-1 text-sm">Thursday, October 15 · Your semester at a glance</p>
+          </div>
+          <Link href="/upload" className={primaryButton}>
+            + Upload syllabus
           </Link>
         </div>
-      </aside>
 
-      <div className="flex-1">
-        {/* Header */}
-        <header className="flex items-center justify-between border-b border-gray-200 bg-white px-8 py-5">
-          <div>
-            <h1 className="text-xl font-semibold">Good evening, Abhishek</h1>
-            <p className="text-sm text-gray-500">Thursday, October 15</p>
+        {/* Next deadline callout */}
+        {nextDeadline && (
+          <div className={`${surface} p-5`}>
+            <p className="text-xs font-semibold">NEXT DEADLINE</p>
+            <p className="mt-1 text-lg font-semibold">
+              {nextLabel}: {nextDeadline.course} {nextDeadline.name}
+            </p>
           </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-200 text-sm font-semibold text-gray-700">
-            A
-          </div>
-        </header>
+        )}
 
-        <main className="space-y-6 px-8 py-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-2xl font-semibold">Overview</h2>
-              <p className="text-sm text-gray-500">Your semester at a glance</p>
-            </div>
-            <Link href="/upload" className="rounded-lg bg-gray-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-gray-800">
-              + Upload syllabus
-            </Link>
-          </div>
-
-          {/* Next deadline callout */}
-          {nextDeadline && (
-            <div className="rounded-xl border border-gray-300 bg-white p-5">
-              <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                Next deadline
+        {/* Stat cards */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[
+            { label: "Due this week", value: dueThisWeek, note: "still open" },
+            { label: "Upcoming exams", value: upcomingExams, note: "not yet taken" },
+            { label: "Courses this semester", value: courses.length, note: "all active" },
+          ].map((stat) => (
+            <div key={stat.label} className={`${surface} p-5`}>
+              <p className="text-sm">{stat.label}</p>
+              <p className="mt-4 text-[28px] font-semibold">
+                {String(stat.value).padStart(2, "0")}
               </p>
-              <p className="mt-1 text-lg font-semibold">
-                {nextLabel}: {nextDeadline.course} {nextDeadline.name}
-              </p>
+              <p className="text-xs">{stat.note}</p>
             </div>
-          )}
+          ))}
+        </div>
 
-          {/* Stat cards */}
-          <div className="grid gap-4 sm:grid-cols-3">
-            {[
-              { label: "Due this week", value: dueThisWeek, note: "still open" },
-              { label: "Upcoming exams", value: upcomingExams, note: "not yet taken" },
-              { label: "Courses this semester", value: courses.length, note: "all active" },
-            ].map((stat) => (
-              <div key={stat.label} className="rounded-xl border border-gray-200 bg-white p-5">
-                <p className="text-sm text-gray-500">{stat.label}</p>
-                <div className="mt-4 flex items-end justify-between">
-                  <p className="text-4xl font-bold">{String(stat.value).padStart(2, "0")}</p>
-                  <p className="text-xs text-gray-400">{stat.note}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Assignment table */}
-            <section className="rounded-xl border border-gray-200 bg-white lg:col-span-2">
-              <div className="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-                <h3 className="font-semibold">Assignments</h3>
-                <Link href="/timeline" className="text-sm text-gray-500 hover:text-gray-900">
-                  View timeline →
-                </Link>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm">
-                  <thead className="text-xs uppercase tracking-wide text-gray-400">
-                    <tr>
-                      <th className="w-12 px-5 py-3 font-medium">Done</th>
-                      <th className="px-3 py-3 font-medium">Assignment</th>
-                      <th className="px-3 py-3 font-medium">Course</th>
-                      <th className="px-3 py-3 font-medium">Due</th>
-                      <th className="px-5 py-3 text-right font-medium">Weight</th>
+        <div className="grid gap-5 lg:grid-cols-3">
+          {/* Assignment table */}
+          <section className={`${surface} lg:col-span-2`}>
+            <div className="flex items-center justify-between border-b border-[#bead99] p-5">
+              <h2 className="text-lg font-semibold">Assignments</h2>
+              <Link
+                href="/timeline"
+                className={`text-sm underline underline-offset-2 ${focusRing}`}
+              >
+                View timeline ↗
+              </Link>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[580px] text-left text-sm">
+                <thead>
+                  <tr>
+                    <th className="px-5 py-4 font-semibold">Done</th>
+                    <th className="px-5 py-4 font-semibold">Assignment</th>
+                    <th className="px-5 py-4 font-semibold">Course</th>
+                    <th className="px-5 py-4 font-semibold">Due</th>
+                    <th className="px-5 py-4 text-right font-semibold">Weight</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sorted.map((a) => (
+                    <tr
+                      key={a.id}
+                      className={`border-t border-[#bead99] ${a.completed ? "opacity-[.55]" : ""}`}
+                    >
+                      <td className="px-5 py-4">
+                        <input
+                          type="checkbox"
+                          checked={a.completed}
+                          onChange={() => toggle(a.id)}
+                          aria-label={`Mark ${a.name} complete`}
+                          className={`h-4 w-4 accent-[#a37c76] ${focusRing}`}
+                        />
+                      </td>
+                      <td className={`px-5 py-4 font-semibold ${a.completed ? "line-through" : ""}`}>
+                        {a.name}
+                      </td>
+                      <td className="px-5 py-4">{a.course}</td>
+                      <td className="px-5 py-4">{formatDate(a.dueDate)}</td>
+                      <td className="px-5 py-4 text-right">{a.weight}%</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {sorted.map((a) => (
-                      <tr
-                        key={a.id}
-                        className={`border-t border-gray-100 ${a.completed ? "text-gray-400" : ""}`}
-                      >
-                        <td className="px-5 py-3">
-                          <input
-                            type="checkbox"
-                            checked={a.completed}
-                            onChange={() => toggle(a.id)}
-                            aria-label={`Mark ${a.name} complete`}
-                            className="h-4 w-4 accent-gray-900"
-                          />
-                        </td>
-                        <td className={`px-3 py-3 font-medium ${a.completed ? "line-through" : ""}`}>
-                          {a.name}
-                        </td>
-                        <td className="px-3 py-3">{a.course}</td>
-                        <td className="px-3 py-3">{formatDate(a.dueDate)}</td>
-                        <td className="px-5 py-3 text-right">{a.weight}%</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <div className="space-y-5">
+            {/* Workload alert */}
+            <section className={`${surface} p-5`}>
+              <h2 className="text-lg font-semibold">Workload Alert</h2>
+              <p className="mt-3 text-sm font-semibold">
+                {heavy
+                  ? `Heavy week ahead: ${weekTotal} deadlines`
+                  : `Light week ahead: ${weekTotal} deadlines`}
+              </p>
+              <p className="mt-1 text-sm">
+                {heavy
+                  ? "Plan a focused study block before your busiest day."
+                  : "You have room to get ahead on upcoming work."}
+              </p>
+              <div className="mt-4 rounded-[8px] border border-[#bead99] bg-[#e6d8c1] p-4">
+                <p className="text-xs font-semibold">DEADLINES BY DAY</p>
+                <div className="mt-3 flex h-24 items-end gap-2">
+                  {weekDays.map((d, i) => (
+                    <div
+                      key={i}
+                      className="flex h-full flex-1 flex-col items-center justify-end gap-1"
+                    >
+                      <div
+                        className={`w-full rounded-[4px] ${d.count >= 2 ? "bg-[#a37c76]" : "bg-[#bead99]"}`}
+                        style={{ height: `${Math.max(6, (d.count / maxCount) * 80)}%` }}
+                      />
+                      <span className="text-xs">{d.label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </section>
 
-            <div className="space-y-6">
-              {/* Workload alert */}
-              <section className="rounded-xl border border-gray-200 bg-white p-5">
-                <h3 className="font-semibold">Workload Alert</h3>
-                <p className="mt-3 font-medium">
-                  {heavy
-                    ? `Heavy week ahead: ${weekTotal} deadlines`
-                    : `Light week ahead: ${weekTotal} deadlines`}
-                </p>
-                <p className="mt-1 text-sm text-gray-500">
-                  {heavy
-                    ? "Plan a focused study block before your busiest day."
-                    : "You have room to get ahead on upcoming work."}
-                </p>
-                <div className="mt-4 rounded-lg bg-gray-100 p-4">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-                    Deadlines by day
-                  </p>
-                  <div className="mt-3 flex h-24 items-end gap-2">
-                    {weekDays.map((d, i) => (
-                      <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
-                        <div
-                          className={`w-full rounded-sm ${d.count >= 2 ? "bg-gray-600" : "bg-gray-300"}`}
-                          style={{ height: `${Math.max(6, (d.count / maxCount) * 80)}%` }}
-                        />
-                        <span className="text-xs text-gray-500">{d.label}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </section>
-
-              {/* Progress per course */}
-              <section className="rounded-xl border border-gray-200 bg-white p-5">
-                <h3 className="font-semibold">Progress by course</h3>
-                <ul className="mt-4 space-y-3">
-                  {progress.map((p) => (
-                    <li key={p.course}>
-                      <div className="flex justify-between text-sm">
-                        <span>{p.course}</span>
-                        <span className="text-gray-500">{p.percent}%</span>
-                      </div>
-                      <div className="mt-1 h-2 rounded-full bg-gray-100">
-                        <div className="h-2 rounded-full bg-gray-700" style={{ width: `${p.percent}%` }} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            </div>
+            {/* Progress per course */}
+            <section className={`${surface} p-5`}>
+              <h2 className="text-lg font-semibold">Progress by course</h2>
+              <ul className="mt-4 space-y-3">
+                {progress.map((p) => (
+                  <li key={p.course}>
+                    <div className="flex justify-between text-sm">
+                      <span>{p.course}</span>
+                      <span>{p.percent}%</span>
+                    </div>
+                    <div className="mt-1 h-2 rounded-full bg-[#e6d8c1]">
+                      <div
+                        className="h-2 rounded-full bg-[#a37c76]"
+                        style={{ width: `${p.percent}%` }}
+                      />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
-        </main>
-      </div>
+        </div>
+      </main>
 
-      {/* Floating chat bubble */}
+      {/* Floating chat bubble (launcher styling from the guide) */}
       <button
         type="button"
         aria-label="Open chat assistant"
-        className="fixed bottom-6 right-6 flex h-14 w-14 items-center justify-center rounded-full bg-gray-900 text-white shadow-lg hover:bg-gray-800"
+        className={`fixed bottom-4 right-4 z-20 flex h-14 w-14 items-center justify-center rounded-full border border-[#a37c76] bg-[#a37c76] text-[#211b19] hover:brightness-[.96] sm:bottom-6 sm:right-6 ${focusRing}`}
+        style={{ boxShadow: "0 4px 18px #211b1920" }}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.5 8.5 0 0 1-3.8-.9L3 20l1.1-4.9A8.4 8.4 0 0 1 3 11.5 8.5 8.5 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z" />

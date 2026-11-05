@@ -5,12 +5,20 @@ import { useRouter } from "next/navigation";
 
 type View = "signin" | "signup" | "forgot" | "check-email" | "reset";
 
-const inputClass =
-  "w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900";
-const primaryButton =
-  "w-full rounded-lg bg-gray-900 py-2.5 text-sm font-medium text-white transition hover:bg-gray-800";
-const linkButton =
-  "font-medium text-gray-900 underline-offset-2 hover:underline";
+// StudySync theme (from the team design guide):
+// cream #e6d8c1 page bg | surface #f8f2e9 cards/inputs | mauve #a37c76 primary
+// ink #211b19 text | border #bead99
+const fontStyle = {
+  fontFamily: "Inter, Arial, Helvetica, sans-serif",
+  lineHeight: 1.5,
+};
+const focusRing =
+  "focus-visible:[outline:3px_solid_#211b19] focus-visible:[outline-offset:3px]";
+const surface = "rounded-[14px] border border-[#bead99] bg-[#f8f2e9]";
+const inputClass = `w-full max-w-full rounded-[6px] border border-[#bead99] bg-[#f8f2e9] px-3 py-2.5 text-sm text-[#211b19] ${focusRing}`;
+const buttonBase = `rounded-[6px] border px-[15px] py-[9px] text-sm font-semibold text-[#211b19] hover:brightness-[.96] ${focusRing}`;
+const primaryButton = `${buttonBase} w-full border-[#a37c76] bg-[#a37c76]`;
+const linkButton = `font-semibold underline underline-offset-2 ${focusRing}`;
 
 type FieldProps = {
   label: string;
@@ -31,9 +39,7 @@ function Field({
 }: FieldProps) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-gray-700">
-        {label}
-      </span>
+      <span className="mb-1.5 block text-sm font-semibold">{label}</span>
       <input
         type={type}
         value={value}
@@ -122,28 +128,27 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
-      <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
-        <p className="mb-6 text-center text-lg font-bold tracking-tight text-gray-900">
-          StudySync
-        </p>
+    <main
+      className="flex min-h-screen items-center justify-center bg-[#e6d8c1] px-4 py-10 text-[#211b19]"
+      style={fontStyle}
+    >
+      <div className={`${surface} w-full max-w-md p-6`}>
+        <p className="mb-6 text-center text-xl font-semibold">StudySync</p>
 
         <div className="mb-6 text-center">
-          <h1 className="text-2xl font-semibold text-gray-900">
-            {copy[view].title}
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">{copy[view].subtitle}</p>
+          <h1 className="text-[22px] font-semibold">{copy[view].title}</h1>
+          <p className="mt-1 text-sm">{copy[view].subtitle}</p>
         </div>
 
         {notice && (
-          <p className="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+          <p className="mb-4 border-l-[3px] border-[#a37c76] pl-3 text-[13px]">
             {notice}
           </p>
         )}
         {error && (
           <p
             role="alert"
-            className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            className="mb-4 rounded-[6px] border border-[#a37c76] bg-[#f8f2e9] px-3 py-2 text-sm font-semibold"
           >
             {error}
           </p>
@@ -171,7 +176,7 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => go("forgot")}
-                className="mt-2 text-sm text-gray-500 hover:text-gray-900"
+                className={`mt-2 text-sm underline underline-offset-2 ${focusRing}`}
               >
                 Forgot password?
               </button>
@@ -179,7 +184,7 @@ export default function LoginPage() {
             <button type="submit" className={primaryButton}>
               Sign in
             </button>
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm">
               Don&apos;t have an account?{" "}
               <button type="button" onClick={() => go("signup")} className={linkButton}>
                 Sign up
@@ -224,7 +229,7 @@ export default function LoginPage() {
             <button type="submit" className={primaryButton}>
               Create account
             </button>
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm">
               Already have an account?{" "}
               <button type="button" onClick={() => go("signin")} className={linkButton}>
                 Sign in
@@ -246,7 +251,7 @@ export default function LoginPage() {
             <button type="submit" className={primaryButton}>
               Send reset link
             </button>
-            <p className="text-center text-sm text-gray-500">
+            <p className="text-center text-sm">
               <button type="button" onClick={() => go("signin")} className={linkButton}>
                 Back to sign in
               </button>
@@ -256,12 +261,10 @@ export default function LoginPage() {
 
         {view === "check-email" && (
           <div className="space-y-4 text-center">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm">
               If an account exists for{" "}
-              <span className="font-medium text-gray-900">
-                {email || "your email"}
-              </span>
-              , you&apos;ll get a link to reset your password in a few minutes.
+              <strong>{email || "your email"}</strong>, you&apos;ll get a link
+              to reset your password in a few minutes.
             </p>
             <button
               type="button"
@@ -270,7 +273,7 @@ export default function LoginPage() {
             >
               Back to sign in
             </button>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm">
               Didn&apos;t get it?{" "}
               <button
                 type="button"
@@ -281,12 +284,12 @@ export default function LoginPage() {
               </button>
             </p>
             {/* Demo only: in the real app this page is reached from the email link. */}
-            <p className="text-xs text-gray-400">
+            <p className="text-xs">
               Demo:{" "}
               <button
                 type="button"
                 onClick={() => go("reset")}
-                className="underline hover:text-gray-600"
+                className={`underline underline-offset-2 ${focusRing}`}
               >
                 open reset link
               </button>
