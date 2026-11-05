@@ -1,4 +1,5 @@
 .studysync-demo {
+  color-scheme: light;
   --ss-cream: #e6d8c1;
   --ss-mauve: #a37c76;
   --ss-surface: #f8f2e9;
@@ -45,6 +46,4 @@
 .deadline-table th, .deadline-table td { border-top: 1px solid var(--ss-border); padding: 16px 20px; }
 .skip-link { position: fixed; left: 12px; top: -100px; z-index: 60; padding: 12px; background: var(--ss-surface); }
 .skip-link:focus { top: 12px; }
-.demo-dark { --ss-surface: #302927; --ss-ink: #f8f2e9; --ss-border: #a37c76; background: #211b19; color: #f8f2e9; padding: 20px; border-radius: 14px; }
-@media (prefers-color-scheme: dark) { .demo-system { --ss-surface: #302927; --ss-ink: #f8f2e9; --ss-border: #a37c76; background: #211b19; color: #f8f2e9; padding: 20px; border-radius: 14px; } }
 @media (max-width: 640px) { .demo-main { padding: 24px 16px 110px; } .demo-nav { padding: 16px; } .demo-banner { padding: 12px 16px; } .nav-placeholder { display: none; } .setting-row { align-items: stretch; flex-direction: column; gap: 12px; } .assistant-panel { top: 0; height: 100dvh; border-radius: 0; } .assistant-launcher { bottom: 16px; right: 16px; } }

@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Assistant, type AssistantScenario } from "./assistant";
+import { Assistant } from "./assistant";
 import { Settings } from "./settings";
 import { demoDeadlines } from "@/lib/study-demo";
 
 export function DemoHost() {
   const [view, setView] = useState<"profile" | "dashboard">("profile");
-  const [scenario, setScenario] = useState<AssistantScenario>("normal");
   return <div className="studysync-demo min-h-screen">
     <a className="skip-link" href="#demo-content">Skip to content</a>
     <header className="demo-nav"><Link href="/" className="mr-5 text-xl font-semibold">StudySync</Link><nav aria-label="Demo navigation" className="flex flex-wrap gap-2"><button className={`nav-button ${view === "dashboard" ? "selected" : ""}`} aria-current={view === "dashboard" ? "page" : undefined} onClick={() => setView("dashboard")}>Dashboard</button><span className="nav-placeholder">Upload</span><span className="nav-placeholder">Timeline</span><span className="nav-placeholder">My Courses</span><button className={`nav-button ${view === "profile" ? "selected" : ""}`} aria-current={view === "profile" ? "page" : undefined} onClick={() => setView("profile")}>Profile &amp; Settings</button></nav></header>
@@ -27,7 +26,6 @@ export function DemoHost() {
         <section className="surface overflow-hidden" aria-labelledby="deadlines-heading"><h2 id="deadlines-heading" className="p-5 text-lg font-semibold">Upcoming deadlines</h2><div className="overflow-x-auto"><table className="deadline-table"><thead><tr><th>Course &amp; deadline</th><th>Due date</th><th>Status</th></tr></thead><tbody>{demoDeadlines.map(d => <tr key={d.course}><td>{d.title}<small className="mt-1 block">{d.course}</small></td><td>{d.due}</td><td>{d.status}</td></tr>)}</tbody></table></div></section>
         <div className="surface mt-5 p-5"><h2 className="font-semibold">Plan ahead, one session at a time</h2><p className="mt-3 text-sm">Start Physics revision and the Engineering project before Thursday. Ask StudySync for a short plan.</p><p className="mt-3 text-xs">Fictional data · No live connections or calendar editing</p></div>
       </>}
-      <details className="surface mt-8 p-5"><summary className="cursor-pointer font-semibold">Assistant demo scenarios</summary><label htmlFor="demo-scenario" className="mt-4 block text-sm">Choose a scenario, then open the assistant. Changing scenarios resets the chat.</label><select id="demo-scenario" className="mt-3" value={scenario} onChange={event => setScenario(event.target.value as AssistantScenario)}><option value="normal">Live Gemini: welcome → loading → conversation</option><option value="error">Simulated error (no API request)</option><option value="empty">No deadlines</option></select><p className="mt-3 text-xs">Live Gemini sends messages to Google. Error and empty scenarios are local fixtures and send no requests. Changing scenarios clears the conversation.</p></details>
-    </main><Assistant key={scenario} scenario={scenario} />
+    </main><Assistant />
   </div>;
 }
