@@ -75,6 +75,9 @@ export default function Home()
           <Link href="/" aria-current="page" className={`${styles.navLink} ${styles.navActive}`}>
             Home
           </Link>
+          <Link href="/courses" className={`${styles.button} ${styles.primary}`}>
+            Courses
+          </Link>
           <Link href="/upload" className={`${styles.button} ${styles.primary}`}>
             Upload Syllabus →
           </Link>

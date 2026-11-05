@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Newsreader } from "next/font/google";
 import styles from "./page.module.css";
+import { addCourse } from "@/utils/courses";
 
 const serif = Newsreader({
   subsets: ["latin"],
@@ -216,6 +217,7 @@ function Brand() {
 export default function ReviewPage() {
   const stored = useSyncExternalStore(subscribe, readStored, readOnServer);
 
+  // 1. Still loading in the browser
   if (stored === undefined) {
     return (
       <div className={styles.page}>
@@ -223,8 +225,21 @@ export default function ReviewPage() {
       </div>
     );
   }
+
+  // 2. Nothing was uploaded (new addition)
+  if (stored === null) {
+    return (
+      <div className={styles.page}>
+        <p className={styles.loading}>
+          Nothing to review yet. <Link href="/upload">Upload a syllabus</Link> first.
+        </p>
+      </div>
+    );
+  }
+
+  // 3. There's an upload to review
   return <Review initial={parseStored(stored)} />;
-}
+}  
 
 function Review({ initial }: { initial: Extraction }) {
   const router = useRouter();
@@ -236,7 +251,7 @@ function Review({ initial }: { initial: Extraction }) {
   const [items, setItems] = useState<Requirement[]>(initial.requirements);
   const [active, setActive] = useState<Category>("assignment"); // selected tab
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  
 
   // ----- Edit course popup -----
   const dialogRef = useRef<HTMLDialogElement>(null); // handle to the <dialog> element
@@ -294,26 +309,13 @@ function Review({ initial }: { initial: Extraction }) {
     (r) => !r.title.trim() || (r.date !== "" && !isValidDate(r.date))
   );
 
-  async function handleConfirm() {
+    function handleConfirm() {
     if (saving || incomplete || items.length === 0) return;
     setSaving(true);
-    setError(null);
 
-    try {
-      // /api/courses doesn't exist yet. It will save the course to Supabase.
-      const response = await fetch("/api/courses", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ course, requirements: items }),
-      });
-      if (!response.ok) throw new Error("Save failed");
-
-      sessionStorage.removeItem(STORAGE_KEY);
-      router.push("/semester"); // change this to wherever the semester view lives
-    } catch {
-      setError("We couldn't save this course yet. Please try again.");
-      setSaving(false);
-    }
+    const id = addCourse(course, items); // saves it in this browser for now
+    sessionStorage.removeItem(STORAGE_KEY);
+    router.push(`/courses/${id}`); // straight to the course's page
   }
 
   // ----- Values used when drawing the page -----
@@ -330,8 +332,11 @@ function Review({ initial }: { initial: Extraction }) {
     { label: "INSTRUCTOR", value: course.instructor },
     { label: "COURSE DATES", value: formatRange(course.startDate, course.endDate) },
   ];
-
+  
   const checkList = [
+    { ok: checks.detailsOk, good: "Course details found", bad: "Some course details are missing" },
+    { ok: checks.datesOk, good: "Dates are readable", bad: "Some dates need fixing" },
+    { ok: checks.conflictsOk, good: "No conflicts detected", bad: "Possible duplicate items" },
     {
       ok: checks.weightsOk,
       good: "Weights add up to about 100%",
@@ -411,12 +416,25 @@ function Review({ initial }: { initial: Extraction }) {
                     </span>
                     <button
                       type="button"
-                      className={styles.menuButton}
-                      aria-label="Edit course information"
+                      className={styles.editCourse}
                       aria-haspopup="dialog"
                       onClick={openEditor}
                     >
-                      ⋯
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                      >
+                        <path d="M12 20h9" />
+                        <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+                      </svg>
+                      Edit course information
                     </button>
                   </div>
                 </div>
@@ -590,12 +608,6 @@ function Review({ initial }: { initial: Extraction }) {
             </aside>
           </div>
 
-          {/* ===== Footer actions ===== */}
-          {error && (
-            <p className={styles.error} role="alert">
-              {error}
-            </p>
-          )}
           {incomplete && (
             <p className={styles.hintText}>
               Give every requirement a name, and fix any dates that look wrong, to continue.
