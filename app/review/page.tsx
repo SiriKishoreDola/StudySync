@@ -4,15 +4,8 @@
 import { useRef, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Newsreader } from "next/font/google";
 import styles from "./page.module.css";
 import { addCourse } from "@/utils/courses";
-
-const serif = Newsreader({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-review-serif",
-});
 
 // ---------- Data shapes ----------
 // These describe the JSON that /api/extract should return (we build that route next).
@@ -313,9 +306,9 @@ function Review({ initial }: { initial: Extraction }) {
     if (saving || incomplete || items.length === 0) return;
     setSaving(true);
 
-    const id = addCourse(course, items); // saves it in this browser for now
+    addCourse(course, items); // saves it in this browser for now
     sessionStorage.removeItem(STORAGE_KEY);
-    router.push(`/courses/${id}`); // straight to the course's page
+    router.push("/dashboard");
   }
 
   // ----- Values used when drawing the page -----
@@ -346,7 +339,7 @@ function Review({ initial }: { initial: Extraction }) {
 
 
   return (
-    <div className={`${styles.page} ${serif.variable}`}>
+    <div className={styles.page}>
       {/* ===== Header ===== */}
       <header className={styles.header}>
         <Link href="/" aria-label="StudySync home">
@@ -399,7 +392,7 @@ function Review({ initial }: { initial: Extraction }) {
 
           <div className={styles.layout}>
             {/* ===== Left: the big card with two sections ===== */}
-            <div className={styles.card}>
+            <div className={`surface ${styles.card}`}>
               {/* --- 01 Course information --- */}
               <section>
                 <div className={styles.sectionHead}>
@@ -626,7 +619,7 @@ function Review({ initial }: { initial: Extraction }) {
 
             <button
               type="button"
-              className={`${styles.button} ${styles.primary}`}
+              className={`ss-button primary ${styles.roomy}`}
               disabled={saving || incomplete || items.length === 0}
               onClick={handleConfirm}
             >
@@ -726,10 +719,10 @@ function Review({ initial }: { initial: Extraction }) {
           )}
 
           <div className={styles.dialogActions}>
-            <button type="button" className={styles.button} onClick={closeEditor}>
+            <button type="button" className={`ss-button ${styles.roomy}`} onClick={closeEditor}>
               Cancel
             </button>
-            <button type="submit" className={`${styles.button} ${styles.primary}`}>
+            <button type="submit" className={`ss-button primary ${styles.roomy}`}>
               Save changes
             </button>
           </div>

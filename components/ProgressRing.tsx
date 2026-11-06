@@ -17,9 +17,9 @@ export default function ProgressRing({
     <div style={{ textAlign: "center", flexShrink: 0 }}>
       <div style={{ position: "relative", width: size, height: size }}>
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
-          <circle cx={mid} cy={mid} r={r} fill="none" stroke="var(--border)" strokeWidth={stroke} />
+          <circle cx={mid} cy={mid} r={r} fill="none" stroke="var(--ss-border)" strokeWidth={stroke} />
           <circle
-            cx={mid} cy={mid} r={r} fill="none" stroke="var(--ink)" strokeWidth={stroke}
+            cx={mid} cy={mid} r={r} fill="none" stroke="var(--ss-ink)" strokeWidth={stroke}
             strokeDasharray={`${(len * percent) / 100} ${len}`}
             transform={`rotate(-90 ${mid} ${mid})`} // start at the top
           />
@@ -28,7 +28,7 @@ export default function ProgressRing({
           {percent}%
         </span>
       </div>
-      {caption && <div style={{ fontSize: 10, color: "var(--soft)", marginTop: 2 }}>{caption}</div>}
+      {caption && <div style={{ fontSize: 10, color: "var(--ss-soft)", marginTop: 2 }}>{caption}</div>}
     </div>
   );
 }

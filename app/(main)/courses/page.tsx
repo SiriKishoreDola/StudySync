@@ -71,8 +71,8 @@ export default function CoursesPage() {
               <div className={styles.foot}>
                 {/* Route for the original file: your teammate's /api/courses/[id]/syllabus */}
                 <a href={`/api/courses/${c.id}/syllabus`} target="_blank" rel="noopener noreferrer"
-                  className={`${styles.button} ${styles.lift}`}>Syllabus</a>
-                <span className={`${styles.button} ${styles.primary}`}>View &amp; edit →</span>
+                  className={`ss-button ${styles.lift}`}>Syllabus</a>
+                <span className="ss-button primary">View &amp; edit →</span>
               </div>
             </article>
           );

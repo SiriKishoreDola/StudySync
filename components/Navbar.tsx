@@ -18,7 +18,7 @@ function Navbar() {
     <header className="demo-nav">
       <Link
         className="mr-5 inline-flex items-center gap-2 text-xl font-semibold"
-        href="/dashboard"
+        href="/"
       >
         <svg width="20" height="18" viewBox="0 0 20 18" aria-hidden="true">
           <rect x="0" y="7" width="5" height="11" fill="currentColor" />

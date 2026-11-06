@@ -1,12 +1,5 @@
 import Link from "next/link";
-import { Newsreader } from "next/font/google";
 import styles from "./page.module.css";
-
-const serif = Newsreader({
-  subsets: ["latin"],
-  style: ["normal", "italic"],
-  variable: "--font-landing-serif",
-});
 
 // The four category tabs in the review preview (10 assignments, 2 exams, ...).
 // "active: true" marks the tab that is highlighted.
@@ -65,7 +58,7 @@ function Brand() {
 export default function Home() 
 {
   return (
-    <div className={`${styles.page} ${serif.variable}`}>
+    <div className={styles.page}>
       <main>
         <section className={styles.hero}>
           <p className={styles.eyebrow}>
@@ -82,7 +75,7 @@ export default function Home()
             Upload your course syllabus and turn scattered deadlines into one semester timeline you can actually plan around.
           </p>
 
-          <Link href="/upload" className={`${styles.button} ${styles.primary} ${styles.large}`}>
+          <Link href="/upload" className={`ss-button primary ${styles.large}`}>
             Upload Syllabus →
           </Link>
 
@@ -104,7 +97,7 @@ export default function Home()
                 <span className={styles.url}>studysync / review</span>
               </div>
               <div className={styles.canvas}>
-                <div className={`${styles.card} ${styles.reviewCard}`}>
+                <div className={`surface ${styles.reviewCard}`}>
                   <p className={styles.eyebrow}>AI EXTRACTION COMPLETE</p>
                   <h2 className={styles.reviewTitle}>Check every detail.</h2>
                   <p className={styles.found}>✓ 18 items found</p>
@@ -199,7 +192,7 @@ export default function Home()
           </div>
           <div className={styles.cards}>
             {/* Chart card */}
-            <div className={`${styles.card} ${styles.chartCard}`}>
+            <div className={`surface ${styles.chartCard}`}>
               {/* role="img" + aria-label describe the chart to screen readers */}
               <div
                 className={styles.bars}
@@ -225,7 +218,7 @@ export default function Home()
               </div>
             </div>
             {features.map((f) => (
-              <article key={f.n} className={`${styles.card} ${styles.feature}`}>
+              <article key={f.n} className={`surface ${styles.feature}`}>
                 <span className={styles.featureNum}>{f.n}</span>
                 <div>
                   <h3 className={styles.featureTitle}>{f.title}</h3>

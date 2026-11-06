@@ -13,7 +13,7 @@ export async function logIn() {
     sameSite: "lax",
     path: "/",
   });
-  redirect("/dashboard");
+  redirect("/");
 }
 
 export async function logOut() {
