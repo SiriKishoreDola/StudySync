@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { createClient } from "../../lib/supabase/client";
 
 type View = "signin" | "signup" | "forgot" | "check-email" | "reset";
 
@@ -16,7 +17,7 @@ const focusRing =
   "focus-visible:[outline:3px_solid_#211b19] focus-visible:[outline-offset:3px]";
 const surface = "rounded-[14px] border border-[#bead99] bg-[#f8f2e9]";
 const inputClass = `w-full max-w-full rounded-[6px] border border-[#bead99] bg-[#f8f2e9] px-3 py-2.5 text-sm text-[#211b19] ${focusRing}`;
-const buttonBase = `rounded-[6px] border px-[15px] py-[9px] text-sm font-semibold text-[#211b19] hover:brightness-[.96] ${focusRing}`;
+const buttonBase = `rounded-[6px] border px-[15px] py-[9px] text-sm font-semibold text-[#211b19] hover:brightness-[.96] disabled:opacity-[.55] ${focusRing}`;
 const primaryButton = `${buttonBase} w-full border-[#a37c76] bg-[#a37c76]`;
 const linkButton = `font-semibold underline underline-offset-2 ${focusRing}`;
 
@@ -69,6 +70,7 @@ const copy: Record<View, { title: string; subtitle: string }> = {
 
 export default function LoginPage() {
   const router = useRouter();
+  const [supabase] = useState(() => createClient());
   const [view, setView] = useState<View>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -76,6 +78,19 @@ export default function LoginPage() {
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // When someone opens the reset link from their email, show the reset form.
+  useEffect(() => {
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") {
+        setView("reset");
+        setError("");
+        setNotice("");
+      }
+    });
+    return () => data.subscription.unsubscribe();
+  }, [supabase]);
 
   function go(next: View, message = "") {
     setView(next);
@@ -83,18 +98,20 @@ export default function LoginPage() {
     setNotice(message);
   }
 
-  // NOTE: all handlers below are mock UI behavior.
-  // Replace with NextAuth / API calls when the backend is built.
-  function handleSignIn(e: React.FormEvent) {
+  async function handleSignIn(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 8) {
+    setLoading(true);
+    setError("");
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (error) {
       setError("Incorrect email or password. Please try again.");
       return;
     }
     router.push("/dashboard");
   }
 
-  function handleSignUp(e: React.FormEvent) {
+  async function handleSignUp(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
@@ -104,15 +121,53 @@ export default function LoginPage() {
       setError("Passwords don't match.");
       return;
     }
-    router.push("/dashboard");
+    setLoading(true);
+    setError("");
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: name } },
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    if (data.session) {
+      router.push("/dashboard");
+    } else {
+      go("signin", "Account created. Please sign in.");
+    }
   }
 
-  function handleForgot(e: React.FormEvent) {
+  async function handleForgot(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true);
+    setError("");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+      return;
+    }
     go("check-email");
   }
 
-  function handleReset(e: React.FormEvent) {
+  async function handleResend() {
+    setError("");
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/login`,
+    });
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    setNotice("Reset link sent again.");
+  }
+
+  async function handleReset(e: React.FormEvent) {
     e.preventDefault();
     if (password.length < 8) {
       setError("Password must be at least 8 characters.");
@@ -122,6 +177,16 @@ export default function LoginPage() {
       setError("Passwords don't match.");
       return;
     }
+    setLoading(true);
+    setError("");
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) {
+      setLoading(false);
+      setError(error.message);
+      return;
+    }
+    await supabase.auth.signOut();
+    setLoading(false);
     setPassword("");
     setConfirm("");
     go("signin", "Password updated. Please sign in.");
@@ -181,8 +246,8 @@ export default function LoginPage() {
                 Forgot password?
               </button>
             </div>
-            <button type="submit" className={primaryButton}>
-              Sign in
+            <button type="submit" disabled={loading} className={primaryButton}>
+              {loading ? "Signing in..." : "Sign in"}
             </button>
             <p className="text-center text-sm">
               Don&apos;t have an account?{" "}
@@ -226,8 +291,8 @@ export default function LoginPage() {
               placeholder="Re-enter your password"
               autoComplete="new-password"
             />
-            <button type="submit" className={primaryButton}>
-              Create account
+            <button type="submit" disabled={loading} className={primaryButton}>
+              {loading ? "Creating account..." : "Create account"}
             </button>
             <p className="text-center text-sm">
               Already have an account?{" "}
@@ -248,8 +313,8 @@ export default function LoginPage() {
               placeholder="you@example.com"
               autoComplete="email"
             />
-            <button type="submit" className={primaryButton}>
-              Send reset link
+            <button type="submit" disabled={loading} className={primaryButton}>
+              {loading ? "Sending..." : "Send reset link"}
             </button>
             <p className="text-center text-sm">
               <button type="button" onClick={() => go("signin")} className={linkButton}>
@@ -275,23 +340,8 @@ export default function LoginPage() {
             </button>
             <p className="text-sm">
               Didn&apos;t get it?{" "}
-              <button
-                type="button"
-                onClick={() => setNotice("Reset link sent again.")}
-                className={linkButton}
-              >
+              <button type="button" onClick={handleResend} className={linkButton}>
                 Resend email
-              </button>
-            </p>
-            {/* Demo only: in the real app this page is reached from the email link. */}
-            <p className="text-xs">
-              Demo:{" "}
-              <button
-                type="button"
-                onClick={() => go("reset")}
-                className={`underline underline-offset-2 ${focusRing}`}
-              >
-                open reset link
               </button>
             </p>
           </div>
@@ -315,8 +365,8 @@ export default function LoginPage() {
               placeholder="Re-enter your new password"
               autoComplete="new-password"
             />
-            <button type="submit" className={primaryButton}>
-              Update password
+            <button type="submit" disabled={loading} className={primaryButton}>
+              {loading ? "Updating..." : "Update password"}
             </button>
           </form>
         )}
