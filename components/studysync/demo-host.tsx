@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Assistant } from "./assistant";
 import { Settings } from "./settings";
 import { demoDeadlines } from "@/lib/study-demo";
+import { placeholderStudent } from "@/lib/placeholder-student";
 
 export function DemoHost() {
   const [view, setView] = useState<"profile" | "dashboard">("profile");
@@ -16,8 +17,8 @@ export function DemoHost() {
       {view === "profile" ? <>
         <h1 className="text-[28px] font-semibold">Profile &amp; Settings</h1><p className="mt-1 text-sm">Your student profile and study preferences, together.</p>
         <section aria-label="Fictional student profile" className="my-7 space-y-5">
-          <div className="flex flex-col items-center gap-2 py-1"><div className="avatar">JD</div><p className="text-[11px] font-semibold">STUDENT PROFILE · DEMO</p><h2 className="text-[28px] font-semibold">Jordan Davis</h2><p className="text-sm">they / them</p></div>
-          <div className="surface grid gap-6 p-6 sm:grid-cols-2"><div><p className="text-xs font-semibold">SCHOOL</p><p className="mt-3 font-semibold">Northwood University</p><p className="mt-2 text-sm">Undergraduate · Year 2</p></div><div><p className="text-xs font-semibold">AGE</p><p className="mt-3 font-semibold">20 years old</p><p className="mt-2 text-sm">Student account · Fictional</p></div></div>
+          <div className="flex flex-col items-center gap-2 py-1"><div className="avatar">{placeholderStudent.initials}</div><p className="text-[11px] font-semibold">STUDENT PROFILE · DEMO</p><h2 className="text-[28px] font-semibold">{placeholderStudent.name}</h2><p className="text-sm">they / them</p></div>
+          <div className="surface grid gap-6 p-6 sm:grid-cols-2"><div><p className="text-xs font-semibold">SCHOOL</p><p className="mt-3 font-semibold">{placeholderStudent.school}</p><p className="mt-2 text-sm">Undergraduate · Year 2</p></div><div><p className="text-xs font-semibold">AGE</p><p className="mt-3 font-semibold">20 years old</p><p className="mt-2 text-sm">Student account · Fictional</p></div></div>
           <div className="surface p-6"><div className="mb-5 flex justify-between"><h2 className="text-lg font-semibold">Courses</h2><p className="text-sm">4 enrolled</p></div><div className="grid gap-4 sm:grid-cols-2">{[["SO", "SOC 204", "Social Research Methods", "Dr. A. Chen", "42%"], ["MA", "MATH 112", "Applied Calculus", "Prof. M. Reyes", "36%"], ["HI", "HIST 230", "Modern World History", "Dr. S. Okafor", "40%"], ["AR", "ART 145", "Visual Composition", "Prof. L. Park", "34%"]].map(([initials, code, title, teacher, progress]) => <div key={code} className="course-card"><span className="course-initials">{initials}</span><div className="flex-1"><p className="text-[11px]">{code}</p><h3 className="font-semibold">{title}</h3><p className="mt-1 text-xs">{teacher}</p></div><span className="text-xs font-semibold">{progress}</span></div>)}</div></div>
         </section><Settings />
       </> : <>

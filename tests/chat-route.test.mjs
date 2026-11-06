@@ -159,7 +159,7 @@ test('Profile/Settings and Dashboard host render the live launcher and simplifie
   const html = renderToStaticMarkup(React.createElement(load('components/studysync/demo-host.tsx').DemoHost));
   assert.match(html, /General/);
   assert.match(html, /Planning/);
-  assert.match(html, /Jordan Davis/);
+  assert.match(html, /Student Name/);
   assert.match(html, /Ask StudySync/);
   assert.match(html, /Save changes/);
   assert.match(html, /Cancel/);

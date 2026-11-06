@@ -148,7 +148,7 @@ const weeks: Week[] = [
   },
 ];
 
-function Timeline() {
+export default function TimelinePage() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [activeWeek, setActiveWeek] = useState(0);
   const [showSemester, setShowSemester] = useState(false);
@@ -483,5 +483,3 @@ function Timeline() {
     </>
   );
 }
-
-export default Timeline;

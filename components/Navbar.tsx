@@ -2,19 +2,24 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { logOut } from "@/lib/session-actions";
 
 const links = [
-  { href: "/", label: "Timeline" },
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/timeline", label: "Timeline" },
   { href: "/profile", label: "Profile" },
   { href: "/courses", label: "Courses" },
 ];
 
-function Topbar() {
+function Navbar() {
   const pathname = usePathname();
 
   return (
     <header className="demo-nav">
-     <Link className="mr-5 inline-flex items-center gap-2 text-xl font-semibold" href="/">
+      <Link
+        className="mr-5 inline-flex items-center gap-2 text-xl font-semibold"
+        href="/dashboard"
+      >
         <svg width="20" height="18" viewBox="0 0 20 18" aria-hidden="true">
           <rect x="0" y="7" width="5" height="11" fill="currentColor" />
           <rect x="7.5" y="0" width="5" height="18" fill="currentColor" />
@@ -24,7 +29,10 @@ function Topbar() {
       </Link>
       <nav aria-label="Main" className="flex flex-wrap gap-2">
         {links.map((link) => {
-          const isCurrent = link.href === "/" ? pathname === "/" : pathname === link.href || pathname.startsWith(`${link.href}/`);
+          const isCurrent =
+            link.href === "/"
+              ? pathname === "/"
+              : pathname === link.href || pathname.startsWith(`${link.href}/`);
           return (
             <Link
               aria-current={isCurrent ? "page" : undefined}
@@ -36,20 +44,24 @@ function Topbar() {
             </Link>
           );
         })}
-        <span className="nav-placeholder">Dashboard</span>
       </nav>
       <div className="ml-auto flex items-center gap-4">
         <Link
           href="/extraction"
-          className="inline-flex items-center gap-2 rounded-md bg-[#a37c76] text-black px-4 py-2 text-sm font-semibold transition-colors hover:bg-blue-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+          className="inline-flex items-center gap-2 rounded-md bg-[#a37c76] px-4 py-2 text-sm font-semibold text-black transition-colors hover:bg-[#8c6862] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#a37c76]"
         >
           Add Syllabus
           <span aria-hidden="true">→</span>
         </Link>
         <span className="text-sm">Fall Semester</span>
+        <form action={logOut}>
+          <button className="nav-button" type="submit">
+            Log out
+          </button>
+        </form>
       </div>
-</header>
+    </header>
   );
 }
 
-export default Topbar;
+export default Navbar;
