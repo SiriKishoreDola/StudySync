@@ -1,0 +1,526 @@
+/* Scoped to app/page.tsx only: Next.js hashes these class names,
+   so nothing here can collide with teammates' .surface / .ss-button. */
+
+.page {
+  /*Color guide we selected */
+  --cream: #e6d8c1;
+  --surface: #f8f2e9;
+  --mauve: #a37c76;
+  --ink: #211b19;
+  --border: #bead99;
+
+  /* Landing-page extras (your palette image + derived shades) */
+  --sage: #8e9680;
+  --sage-dark: #5e6653;
+  --amber: #d9b382;
+  --sand: #d8c8ac;
+  --soft: #5f504a;
+
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  line-height: 1.5;
+}
+
+.page :focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+}
+
+/* ---------- Buttons (same geometry as the team's .ss-button) ---------- */
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 15px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.button:hover {
+  filter: brightness(0.96);
+}
+.primary {
+  background: var(--mauve);
+  border-color: var(--mauve);
+}
+.large {
+  padding: 13px 24px;
+}
+
+/* ---------- Header ---------- */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  min-height: 72px;
+  padding: 15px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.navLink {
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.navActive {
+  background: var(--mauve);
+  font-weight: 600;
+}
+
+/* ---------- Hero ---------- */
+.hero {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 80px 24px 72px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  margin: 0px;
+  transform: uppercase;
+}
+
+
+.marker {
+  width: 6px;
+  height: 6px;
+  background: var(--amber);
+}
+.title {
+  margin: 28px 0 0;
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: clamp(3rem, 9vw, 6rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+.titleSoft {
+  display: block;
+  font-style: italic;
+  color: var(--soft);
+}
+.lead {
+  max-width: 460px;
+  margin: 28px 0 32px;
+  font-size: 16px;
+  color: var(--soft);
+}
+.trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 24px;
+  margin: 40px 0 0;
+  padding: 16px 0 0;
+  list-style: none;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--soft);
+}
+
+/* ---------- Product preview ---------- */
+.frame {
+  max-width: 866px;
+  margin: 0 auto;
+  padding: 40px 40px 0;
+  background: var(--sand);
+}
+.window {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+}
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.dots {
+  display: flex;
+  gap: 6px;
+}
+.dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.url {
+  margin: 0 auto;
+  padding: 5px 56px;
+  background: var(--cream);
+  border-radius: 4px;
+  font-size: 11px;
+  color: var(--soft);
+}
+
+.canvas {
+  position: relative;
+  padding: 40px 40px 72px;
+  background: var(--cream);
+}
+
+/* ---------- Cards (same look as the team's .surface) ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.reviewCard {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.reviewTitle {
+  margin: 12px 0 16px;
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 32px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.found {
+  display: inline-block;
+  margin: 0 0 24px;
+  padding: 8px 14px;
+  border-radius: 4px;
+  background: var(--cream);
+  font-size: 12px;
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 0;
+  border-top: 1px solid var(--border);
+}
+.fieldLabel {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--soft);
+}
+.fieldValue {
+  margin: 2px 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+.confirmed {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--sage-dark);
+}
+
+.reqHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--soft);
+}
+/* the four category tabs */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  margin-top: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+.tabActive {
+  background: var(--cream);
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: -1px;
+}
+.tabCount {
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.tabLabel {
+  font-size: 11px;
+  color: var(--soft);
+}
+/* the requirements table */
+.reqList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.reqRow {
+  display: grid;
+  grid-template-columns: 96px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+}
+.reqType {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--soft);
+}
+.reqTitle {
+  font-weight: 600;
+}
+.reqDate {
+  font-size: 12px;
+  color: var(--soft);
+}
+.reqWeight {
+  min-width: 36px;
+  text-align: right;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.toast {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 14px;
+}
+.toastIcon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--sage);
+  font-size: 13px;
+  font-weight: 600;
+}
+.toastLabel {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--soft);
+}
+.toastText {
+  display: block;
+  font-weight: 600;
+}
+
+/* ---------- Dark process strip ---------- */
+.strip {
+  background: var(--ink);
+  color: var(--surface);
+}
+.stripInner {
+  display: grid;
+  grid-template-columns: 1.1fr repeat(3, 1fr);
+  max-width: 1280px;
+  margin: 0 auto;
+}
+.stripLabel {
+  margin: 0;
+  padding: 24px 32px;
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.7;
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 32px;
+  border-left: 1px solid #f8f2e926;
+  font-size: 14px;
+  font-weight: 600;
+}
+.stepNum {
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--amber);
+}
+
+/* ---------- Workload section ---------- */
+.workload {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 80px 64px 110px;
+}
+.workloadHead {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  align-items: start;
+  gap: 24px;
+}
+.workloadTitle {
+  max-width: 480px;
+  margin: 0;
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: clamp(2.25rem, 5vw, 3.25rem);
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.cards {
+  display: grid;
+  grid-template-columns: 1.9fr 1fr 1fr;
+  gap: 16px;
+  margin-top: 56px;
+}
+.chartCard {
+  display: flex;
+  align-items: flex-end;
+  gap: 32px;
+  min-height: 220px;
+  padding: 24px;
+  background: var(--sand);
+}
+.bars {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  gap: 10px;
+  height: 130px;
+  border-bottom: 1px solid var(--border);
+}
+.bar {
+  flex: 1;
+  background: var(--sage);
+}
+.barPeak {
+  background: var(--ink);
+}
+.chartMeta {
+  flex-shrink: 0;
+}
+.chartLabel {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--soft);
+}
+.chartDate {
+  margin: 6px 0 0;
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 22px;
+}
+.chartNote {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--soft);
+}
+.feature {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 220px;
+  padding: 24px;
+}
+.featureNum {
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 18px;
+  color: var(--soft);
+}
+.featureTitle {
+  margin: 0;
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 22px;
+  font-weight: 400;
+}
+.featureBody {
+  margin: 10px 0 0;
+  font-size: 14px;
+  color: var(--soft);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .cards,
+  .workloadHead,
+  .stripInner {
+    grid-template-columns: 1fr;
+  }
+  .step {
+    border-left: 0;
+    border-top: 1px solid #f8f2e926;
+  }
+  .workload {
+    padding: 56px 24px 80px;
+  }
+}
+
+@media (max-width: 640px) {
+  .header {
+    padding: 16px;
+  }
+  .frame {
+    padding: 24px 16px 0;
+  }
+  .canvas {
+    padding: 24px 16px 88px;
+  }
+  .reviewCard {
+    padding: 18px;
+  }
+  /* type label gets its own line, title and weight share the next one */
+  .reqRow {
+    grid-template-columns: 1fr auto;
+  }
+  .reqType {
+    grid-column: 1 / -1;
+  }
+  .chartCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
