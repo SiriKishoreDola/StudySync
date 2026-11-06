@@ -94,18 +94,7 @@ function CheckIcon({ size = 18 }: { size?: number }) {
   );
 }
 
-function Brand() {
-  return (
-    <span className={styles.brand}>
-      <svg width="20" height="18" viewBox="0 0 20 18" aria-hidden="true">
-        <rect x="0" y="7" width="5" height="11" fill="currentColor" />
-        <rect x="7.5" y="0" width="5" height="18" fill="currentColor" />
-        <rect x="15" y="4" width="5" height="14" fill="currentColor" />
-      </svg>
-      StudySync
-    </span>
-  );
-}
+
 
 export default function UploadPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -171,18 +160,6 @@ export default function UploadPage() {
 
   return (
     <div className={`${styles.page} ${serif.variable}`}>
-      {/* ===== Header ===== */}
-      <header className={styles.header}>
-        <Link href="/" aria-label="StudySync home">
-          <Brand />
-        </Link>
-        <nav className={styles.nav} aria-label="Main">
-          <Link href="/" className={styles.navLink}>
-            Home
-          </Link>
-        </nav>
-      </header>
-
       <main>
         {/*Step bar: back link, progress segments, "Step 1 of 2" */}
         <div className={styles.subbar}>

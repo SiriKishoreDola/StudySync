@@ -66,23 +66,6 @@ export default function Home()
 {
   return (
     <div className={`${styles.page} ${serif.variable}`}>
-      <header className={styles.header}>
-        <Link href="/" aria-label="StudySync home">
-          <Brand />
-        </Link>
-
-        <nav className={styles.nav} aria-label="Main">
-          <Link href="/" aria-current="page" className={`${styles.navLink} ${styles.navActive}`}>
-            Home
-          </Link>
-          <Link href="/courses" className={`${styles.button} ${styles.primary}`}>
-            Courses
-          </Link>
-          <Link href="/upload" className={`${styles.button} ${styles.primary}`}>
-            Upload Syllabus →
-          </Link>
-        </nav>
-      </header>
       <main>
         <section className={styles.hero}>
           <p className={styles.eyebrow}>

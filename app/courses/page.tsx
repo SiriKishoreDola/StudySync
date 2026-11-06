@@ -8,7 +8,7 @@ import {
 } from "@/utils/courses";
 import styles from "./courses.module.css";
 
-// ---------- The page ----------
+
 export default function CoursesPage() {
   const courses = useCourses();
   if (!courses) return <p className={styles.sub}>Loading…</p>;
