@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Assistant } from "@/components/studysync/assistant";
-import { placeholderStudent } from "@/lib/placeholder-student";
+import { createClient } from "@/lib/supabase/client";
 
 type Assignment = {
   id: number;
@@ -35,6 +35,18 @@ export default function DashboardPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [userName, setUserName] = useState("");
+
+  // Get the signed-in user's name from Supabase.
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const user = data.user;
+      if (!user) return;
+      const fullName = user.user_metadata?.full_name as string | undefined;
+      setUserName(fullName || user.email?.split("@")[0] || "");
+    });
+  }, []);
 
   // Load assignments from the API when the page opens.
   useEffect(() => {
@@ -119,7 +131,9 @@ export default function DashboardPage() {
     <div className="dashboard-page">
       <div className="intro-row">
         <div>
-          <h1 className="text-[28px] font-semibold">Good evening, {placeholderStudent.name}</h1>
+          <h1 className="text-[28px] font-semibold">
+            Good evening{userName ? `, ${userName}` : ""}
+          </h1>
           <p className="mt-1 text-sm">Thursday, October 15 · Your semester at a glance</p>
         </div>
         <Link href="/upload" className="ss-button primary inline-block">
