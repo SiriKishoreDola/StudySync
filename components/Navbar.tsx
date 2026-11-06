@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { logOut } from "@/lib/session-actions";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
 const links = [
   { href: "/dashboard", label: "Dashboard" },
@@ -13,6 +13,14 @@ const links = [
 
 function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleLogOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <header className="demo-nav">
@@ -54,11 +62,9 @@ function Navbar() {
           <span aria-hidden="true">→</span>
         </Link>
         <span className="text-sm">Fall Semester</span>
-        <form action={logOut}>
-          <button className="nav-button" type="submit">
-            Log out
-          </button>
-        </form>
+        <button className="nav-button" type="button" onClick={handleLogOut}>
+          Log out
+        </button>
       </div>
     </header>
   );
