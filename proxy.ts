@@ -1,8 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { sessionCookie } from "@/lib/session";
 
 export function proxy(request: NextRequest) {
-  const isLoggedIn = request.cookies.has(sessionCookie);
+  const isLoggedIn = request.cookies
+    .getAll()
+    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
   const isLoginPage = request.nextUrl.pathname === "/login";
 
   if (!isLoggedIn && !isLoginPage) {
