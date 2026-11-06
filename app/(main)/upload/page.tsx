@@ -3,14 +3,7 @@
 import { type DragEvent, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Newsreader } from "next/font/google";
 import styles from "./page.module.css";
-
-const serif = Newsreader({
-    subsets: ["latin"],
-    style: ["normal", "italic"],
-    variable: "--font-upload-serif",
-});
 
 //---------------Rules for what we accept for upload------------------
 const MAX_SIZE_MB = 10;
@@ -159,12 +152,12 @@ export default function UploadPage() {
   }
 
   return (
-    <div className={`${styles.page} ${serif.variable}`}>
+    <div className={styles.page}>
       <main>
         {/*Step bar: back link, progress segments, "Step 1 of 2" */}
         <div className={styles.subbar}>
-          <Link href="/" className={styles.back}>
-            ← Back home
+          <Link href="/dashboard" className={styles.back}>
+            ← Dashboard
           </Link>
 
           {/* Two segments; only the first is filled because we're on step 1 */}
@@ -201,7 +194,7 @@ export default function UploadPage() {
           </section>
 
           {/* Right column: the upload card*/}
-          <section className={styles.card}>
+          <section className={`surface ${styles.card}`}>
             <div className={styles.cardHead}>
               <span className={styles.cardIcon} aria-hidden="true">
                 <UploadIcon />
@@ -300,7 +293,7 @@ export default function UploadPage() {
               {/* Disabled until a file is chosen, and while reading */}
               <button
                 type="button"
-                className={`${styles.button} ${styles.primary}`}
+                className="ss-button primary"
                 disabled={!file || loading}
                 onClick={handleRead}
               >

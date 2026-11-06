@@ -27,15 +27,15 @@ export type CourseData = {
 
 // Display names and colors for each type.
 export const TYPES: Record<ItemType, { one: string; many: string; color: string }> = {
-  assignment: { one: "Assignment", many: "Assignments", color: "var(--mauve)" },
-  quiz: { one: "Quiz", many: "Quizzes", color: "var(--amber)" },
-  exam: { one: "Exam", many: "Exams", color: "var(--ink)" },
-  project: { one: "Project", many: "Projects", color: "var(--sage)" },
-  reading: { one: "Reading", many: "Readings", color: "var(--brown)" },
+  assignment: { one: "Assignment", many: "Assignments", color: "var(--ss-mauve)" },
+  quiz: { one: "Quiz", many: "Quizzes", color: "var(--ss-amber)" },
+  exam: { one: "Exam", many: "Exams", color: "var(--ss-ink)" },
+  project: { one: "Project", many: "Projects", color: "var(--ss-sage)" },
+  reading: { one: "Reading", many: "Readings", color: "var(--ss-brown)" },
 };
 
 // Each course gets a color by its position in the list.
-export const COURSE_COLORS = ["var(--mauve)", "var(--sage)", "var(--amber)", "var(--brown)"];
+export const COURSE_COLORS = ["var(--ss-mauve)", "var(--ss-sage)", "var(--ss-amber)", "var(--ss-brown)"];
 
 // ---------- Date helpers ----------
 export const DAY = 864e5;

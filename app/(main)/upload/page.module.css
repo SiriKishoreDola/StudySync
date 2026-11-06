@@ -1,84 +1,5 @@
-
-
 .page {
-  --cream: #e6d8c1;
-  --surface: #f8f2e9;
-  --mauve: #a37c76;
-  --ink: #211b19;
-  --border: #bead99;
-  --sand: #d8c8ac;
-  --soft: #5f504a;
-
   min-height: 100vh;
-  background: var(--cream);
-  color: var(--ink);
-  font-family: Inter, Arial, Helvetica, sans-serif;
-  line-height: 1.5;
-}
-
-.page :focus-visible {
-  outline: 3px solid var(--ink);
-  outline-offset: 3px;
-}
-
-/* ---------- Buttons ---------- */
-.button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 15px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--ink);
-  font-family: inherit;
-  font-size: 14px;
-  font-weight: 600;
-  text-decoration: none;
-  cursor: pointer;
-}
-.button:hover:not(:disabled) {
-  filter: brightness(0.96);
-}
-.button:disabled {
-  opacity: 0.55; /* faded look when there's nothing to submit yet */
-  cursor: default;
-}
-.primary {
-  background: var(--mauve);
-  border-color: var(--mauve);
-}
-
-/* ---------- Header ---------- */
-.header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  min-height: 72px;
-  padding: 15px 28px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-}
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--ink);
-}
-.nav {
-  display: flex;
-  gap: 8px;
-}
-.navLink {
-  padding: 10px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  color: var(--ink);
-  text-decoration: none;
 }
 
 /* ---------- Step bar ---------- */
@@ -90,12 +11,12 @@
   max-width: 1100px;
   margin: 0 auto;
   padding: 18px 24px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--ss-border);
 }
 .back {
   justify-self: start;
   font-size: 12px;
-  color: var(--ink);
+  color: var(--ss-ink);
   text-decoration: none;
 }
 .back:hover {
@@ -108,17 +29,17 @@
 .segment {
   width: 56px;
   height: 3px;
-  background: var(--border);
+  background: var(--ss-border);
 }
 .segmentActive {
-  background: var(--ink);
+  background: var(--ss-ink);
 }
 .stepCount {
   margin: 0;
   justify-self: end;
   font-size: 11px;
   font-weight: 600;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 
 /* ---------- Two-column layout ---------- */
@@ -135,9 +56,9 @@
 /* ---------- Left column ---------- */
 .num {
   margin: 0 0 24px;
-  font-family: var(--font-upload-serif), Georgia, serif;
+  font-family: var(--font-newsreader), Georgia, serif;
   font-size: 16px;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 .eyebrow {
   margin: 0;
@@ -146,7 +67,7 @@
 }
 .heading {
   margin: 12px 0 0;
-  font-family: var(--font-upload-serif), Georgia, serif;
+  font-family: var(--font-newsreader), Georgia, serif;
   font-size: clamp(2.75rem, 6vw, 4.25rem);
   font-weight: 400;
   line-height: 1;
@@ -156,15 +77,15 @@
   max-width: 320px;
   margin: 20px 0 36px;
   font-size: 14px;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 .findLabel {
   margin: 0 0 8px;
   padding-top: 20px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--ss-border);
   font-size: 11px;
   font-weight: 600;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 .findList {
   margin: 0;
@@ -176,12 +97,12 @@
   grid-template-columns: 36px 1fr; /* number | text */
   align-items: center;
   padding: 14px 0;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--ss-border);
 }
 .findNum {
-  font-family: var(--font-upload-serif), Georgia, serif;
+  font-family: var(--font-newsreader), Georgia, serif;
   font-size: 14px;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 .findTitle {
   display: block;
@@ -191,15 +112,12 @@
 .findBody {
   display: block;
   font-size: 12px;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 
 /* ---------- Upload card ---------- */
 .card {
   padding: 28px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
 }
 .cardHead {
   display: flex;
@@ -211,13 +129,13 @@
   place-items: center;
   width: 40px;
   height: 40px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ss-border);
   border-radius: 6px;
   font-size: 16px;
 }
 .cardTitle {
   margin: 0;
-  font-family: var(--font-upload-serif), Georgia, serif;
+  font-family: var(--font-newsreader), Georgia, serif;
   font-size: 24px;
   font-weight: 400;
   line-height: 1.2;
@@ -225,20 +143,20 @@
 .cardSub {
   margin: 2px 0 0;
   font-size: 11px;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 
 /* ---------- Drop area ---------- */
 .dropzone {
   margin-top: 24px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ss-border);
   border-radius: 8px;
-  background: var(--cream);
+  background: var(--ss-cream);
 }
 /* while a file is being dragged over the box */
 .dragging {
-  border-color: var(--ink);
-  background: var(--sand);
+  border-color: var(--ss-ink);
+  background: var(--ss-sand);
 }
 /* the button fills the whole box so the entire area is clickable */
 .dropButton {
@@ -261,48 +179,48 @@
   width: 44px;
   height: 44px;
   margin-bottom: 8px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ss-border);
   border-radius: 50%;
-  background: var(--surface);
+  background: var(--ss-surface);
   font-size: 18px;
 }
 /* turns dark with a check once a file is chosen */
 .dropIconDone {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--surface);
+  background: var(--ss-ink);
+  border-color: var(--ss-ink);
+  color: var(--ss-surface);
 }
 .dropTitle {
-  font-family: var(--font-upload-serif), Georgia, serif;
+  font-family: var(--font-newsreader), Georgia, serif;
   font-size: 18px;
   overflow-wrap: anywhere; /* long file names wrap instead of overflowing */
 }
 .dropHint {
   font-size: 12px;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 
 /* ---------- Messages ---------- */
 .error {
   margin: 16px 0 0;
   padding: 12px 14px;
-  border: 1px solid var(--mauve);
+  border: 1px solid var(--ss-mauve);
   border-radius: 6px;
-  background: var(--surface);
+  background: var(--ss-surface);
   font-size: 13px;
 }
 .note {
   margin-top: 20px;
   padding: 14px 16px;
-  border-left: 3px solid var(--mauve);
-  background: var(--cream);
+  border-left: 3px solid var(--ss-mauve);
+  background: var(--ss-cream);
   font-size: 12px;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 .note strong {
   display: block;
   font-size: 13px;
-  color: var(--ink);
+  color: var(--ss-ink);
 }
 
 /* ---------- Card footer ---------- */
@@ -314,12 +232,12 @@
   gap: 16px;
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--ss-border);
 }
 .private {
   margin: 0;
   font-size: 11px;
-  color: var(--soft);
+  color: var(--ss-soft);
 }
 
 /* ---------- Responsive ---------- */
@@ -332,9 +250,6 @@
 }
 
 @media (max-width: 640px) {
-  .header {
-    padding: 16px;
-  }
   .subbar {
     grid-template-columns: 1fr auto; /* hide the progress segments to save room */
   }
@@ -347,8 +262,7 @@
   .dropButton {
     padding: 36px 16px;
   }
-  .footer .button {
+  .footer :global(.ss-button) {
     width: 100%;
-    justify-content: center;
   }
 }
