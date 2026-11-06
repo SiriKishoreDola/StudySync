@@ -1,4 +1,5 @@
 import Navbar from "@/components/Navbar";
+import { Assistant } from "@/components/studysync/assistant";
 
 export default function MainLayout({ children }: LayoutProps<"/">) {
   return (
@@ -10,6 +11,7 @@ export default function MainLayout({ children }: LayoutProps<"/">) {
       <main className="demo-main" id="main-content">
         {children}
       </main>
+      <Assistant />
     </>
   );
 }
