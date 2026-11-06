@@ -200,3 +200,28 @@ test('diagnostics allowlist metadata and never copy provider secrets or raw mess
   assert.equal(result.diagnostic.category, 'credentials');
   assert.doesNotMatch(JSON.stringify(result), /sensitive-provider-detail/);
 });
+
+test('signed-in shell owns one assistant while Dashboard and Login do not mount another', async () => {
+  const { createRequire } = await import('node:module');
+  const require = createRequire(import.meta.url);
+  const React = require('react');
+  const { renderToStaticMarkup } = require('react-dom/server');
+  const exports = {};
+  const code = ts.transpileModule(fs.readFileSync('app/(main)/layout.tsx', 'utf8'), {
+    compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
+  }).outputText;
+  vm.runInNewContext(code, { exports, require(name) {
+    if (name === '@/components/Navbar') return { default: () => React.createElement('nav', null, 'Shared navigation') };
+    if (name === '@/components/studysync/assistant') return { Assistant: () => React.createElement('button', { 'data-chat-launcher': true }, 'Ask StudySync') };
+    return require(name);
+  } });
+  const html = renderToStaticMarkup(React.createElement(exports.default, null, React.createElement('section', null, 'Page content')));
+  assert.equal((html.match(/data-chat-launcher/g) || []).length, 1);
+  assert.match(html, /Shared navigation/);
+  assert.match(html, /Page content/);
+  for (const path of ['app/(main)/dashboard/page.tsx', 'app/login/page.tsx', 'app/layout.tsx']) {
+    assert.doesNotMatch(fs.readFileSync(path, 'utf8'), /<Assistant\b/);
+  }
+  assert.ok(fs.existsSync('app/(main)/review/page.tsx'));
+  assert.equal(fs.existsSync('app/review/page.tsx'), false);
+});

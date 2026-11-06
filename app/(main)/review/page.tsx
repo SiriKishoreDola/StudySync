@@ -190,19 +190,6 @@ function readOnServer(): string | null | undefined {
   return undefined;
 }
 
-function Brand() {
-  return (
-    <span className={styles.brand}>
-      <svg width="20" height="18" viewBox="0 0 20 18" aria-hidden="true">
-        <rect x="0" y="7" width="5" height="11" fill="currentColor" />
-        <rect x="7.5" y="0" width="5" height="18" fill="currentColor" />
-        <rect x="15" y="4" width="5" height="14" fill="currentColor" />
-      </svg>
-      StudySync
-    </span>
-  );
-}
-
 // ---------- The page ----------
 
 // This outer component only loads the data. The real screen is <Review />, which
@@ -340,19 +327,7 @@ function Review({ initial }: { initial: Extraction }) {
 
   return (
     <div className={styles.page}>
-      {/* ===== Header ===== */}
-      <header className={styles.header}>
-        <Link href="/" aria-label="StudySync home">
-          <Brand />
-        </Link>
-        <nav className={styles.nav} aria-label="Main">
-          <Link href="/" className={styles.navLink}>
-            Home
-          </Link>
-        </nav>
-      </header>
-
-      <main>
+      <section aria-label="Syllabus review">
         {/* ===== Step bar: now on step 2, so two segments are filled ===== */}
         <div className={styles.subbar}>
           <Link href="/upload" className={styles.back}>
@@ -627,7 +602,7 @@ function Review({ initial }: { initial: Extraction }) {
             </button>
           </div>
         </div>
-      </main>
+      </section>
       {/* ===== Edit course popup ===== */}
       <dialog
         ref={dialogRef}

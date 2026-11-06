@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Assistant } from "@/components/studysync/assistant";
 import { placeholderStudent } from "@/lib/placeholder-student";
 
 type Assignment = {
@@ -264,7 +263,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Assistant />
     </div>
   );
 }
