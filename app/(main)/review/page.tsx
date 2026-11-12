@@ -289,13 +289,24 @@ function Review({ initial }: { initial: Extraction }) {
     (r) => !r.title.trim() || (r.date !== "" && !isValidDate(r.date))
   );
 
-    function handleConfirm() {
+  async function handleConfirm() {
     if (saving || incomplete || items.length === 0) return;
     setSaving(true);
 
-    addCourse(course, items); // saves it in this browser for now
-    sessionStorage.removeItem(STORAGE_KEY);
-    router.push("/dashboard");
+    try {
+      // Provide a valid test UUID (or retrieve your auth user ID from Supabase session if logged in)
+      const userId = "123e4567-e89b-12d3-a456-426614174000"; 
+      const syllabusId = null; // Can be passed if stored from extraction
+
+      const courseId = await addCourse(course, items, userId, syllabusId);
+      sessionStorage.removeItem(STORAGE_KEY);
+      
+      // Navigate to the newly created course page if an ID was returned, otherwise fallback to dashboard
+      router.push(courseId ? `/courses/${courseId}` : "/dashboard");
+    } catch (err) {
+      console.error("Failed to save course:", err);
+      setSaving(false);
+    }
   }
 
   // ----- Values used when drawing the page -----

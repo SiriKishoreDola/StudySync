@@ -1,94 +1,163 @@
-import { NextResponse } from "next/server";
-import mammoth from "mammoth";
-import { extractSyllabus, type SyllabusSource } from "@/utils/gemini";
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+import { GoogleGenAI } from '@google/genai';
 
-// Use the full Node.js runtime (mammoth and Buffer need it).
-export const runtime = "nodejs";
-// Gemini can take 10-20 seconds, so allow up to 60 on Vercel.
-export const maxDuration = 60;
-
-// The browser also checks these, but never trust the browser: check again here.
-const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
-
-function fail(message: string, status: number) {
-  return NextResponse.json({ error: message }, { status });
-}
-
-export async function POST(request: Request) {
-  // 1. Get the uploaded file out of the form data.
-  let formData: FormData;
+export async function POST(req: Request) {
   try {
-    formData = await request.formData();
-  } catch {
-    return fail("We couldn't read that upload. Please try again.", 400);
-  }
-
-  const file = formData.get("file");
-  if (!(file instanceof File)) return fail("No file was uploaded.", 400);
-
-  // 2. Check type and size.
-  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
-  if (extension === "doc") {
-    return fail(
-      "Older .doc files aren't supported. Please save it as a PDF or DOCX and try again.",
-      415
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
-  }
-  if (extension !== "pdf" && extension !== "docx") {
-    return fail("Please upload a PDF or DOCX file.", 415);
-  }
-  if (file.size === 0) return fail("That file looks empty.", 400);
-  if (file.size > MAX_BYTES) {
-    return fail("That file is too large. The maximum size is 10 MB.", 413);
-  }
 
-  // 3. Check the file's first bytes match its extension (a renamed .txt isn't a PDF).
-  const bytes = Buffer.from(await file.arrayBuffer());
-  const looksLikePdf = bytes.subarray(0, 5).toString("latin1") === "%PDF-";
-  const looksLikeDocx = bytes[0] === 0x50 && bytes[1] === 0x4b; // "PK": DOCX is a zip file
-  if ((extension === "pdf" && !looksLikePdf) || (extension === "docx" && !looksLikeDocx)) {
-    return fail("That file looks damaged or isn't really a " + extension.toUpperCase() + ".", 400);
-  }
+    // 1. Extract the file from the incoming FormData
+    const formData = await req.formData();
+    const file = formData.get('file') as File | null;
 
-  // 4. Prepare it for Gemini.
-  let source: SyllabusSource;
-  if (extension === "pdf") {
-    // Gemini reads PDFs directly, including scanned pages.
-    source = { kind: "pdf", base64: bytes.toString("base64") };
-  } else {
-    try {
-      // Convert to HTML (not plain text) so tables, like a weekly schedule, keep their rows.
-       const { value: html } = await mammoth.convertToHtml({ buffer: bytes });
-      // Images become huge base64 strings and would eat the character limit, so remove them.
-      const value = html.replace(/<img[^>]*>/g, "");
-      if (!value.trim()) return fail("We couldn't find any text in that document.", 422);
-      source = { kind: "text", text: value };
-    } catch {
-      return fail("We couldn't open that DOCX file. Is it damaged?", 422);
-    }
-  }
-
-  // 5. Ask Gemini and return the cleaned result.
-  try {
-    const result = await extractSyllabus(source);
-    return NextResponse.json({ fileName: file.name, ...result });
-  } catch (error) {
-    // The real reason goes to the terminal; the user gets a friendly message.
-    console.error("Syllabus extraction failed:", error);
-
-    if (
-      error instanceof Error &&
-      error.name === "NotASyllabusError"
-    ) {
-      return fail("We couldn't find any course details in that file. Is it a syllabus?", 422);
-    }
-    const status = (error as { status?: number }).status;
-    if (status === 429 || status === 503) {
-      return fail(
-        "The AI service is busy right now. Please try again in a minute.",
-        503
+    if (!file) {
+      return NextResponse.json(
+        { error: 'No file uploaded in form data' },
+        { status: 400 }
       );
     }
-    return fail("We couldn't read that syllabus. Please try again.", 502);
+
+    const originalFilename = file.name;
+    const fileType = file.type || 'application/pdf';
+    
+    // Default test user ID (replace with real auth user ID when ready)
+    const userId = '11111111-1111-1111-1111-111111111111'; 
+    const filePath = `${userId}/${Date.now()}_${originalFilename}`;
+
+    // 2. Upload file directly to Supabase Storage bucket 'syllabi'
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const { error: uploadError } = await supabase.storage
+      .from('syllabi')
+      .upload(filePath, buffer, {
+        contentType: fileType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      throw new Error(`Failed to upload to storage: ${uploadError.message}`);
+    }
+
+    // 3. Create initial database row with 'pending' status
+    const { data: syllabusRow, error: dbError } = await supabase
+      .from('syllabi')
+      .insert({
+        user_id: userId,
+        file_path: filePath,
+        file_name: originalFilename,
+        status: 'pending',
+      })
+      .select('id')
+      .single();
+
+    if (dbError || !syllabusRow) {
+      throw new Error(dbError?.message || 'Failed to create database record');
+    }
+
+    const syllabusId: string = syllabusRow.id;
+
+    try {
+      // 4. Encode buffer to base64 and structure inline data payload safely
+      const base64Pdf = buffer.toString('base64');
+      const promptText = `Extract course details from this syllabus. Return strictly as valid JSON with these exact keys:
+        - "title": (string, the name of the course)
+        - "code": (string, the course code like CS101)
+        - "semester": (string)
+        - "instructor": (string)
+        - "requirements": (array of objects, each containing:
+            - "name": string
+            - "category": MUST BE EXACTLY ONE OF: "assignment", "exam", "quiz", "project", "reading"
+            - "dueDate": string (YYYY-MM-DD format or null)
+            - "weight": string or number
+)`;
+
+      let response;
+      const retries = 3;
+      let delay = 2000;
+
+      for (let attempt = 1; attempt <= retries; attempt++) {
+        try {
+          response = await ai.models.generateContent({
+            model: 'gemini-3.5-flash-lite', // High quota tier (500 requests/day)
+            contents: [
+              {
+                role: 'user',
+                parts: [
+                  {
+                    inlineData: {
+                      mimeType: fileType === 'application/pdf' ? 'application/pdf' : 'application/octet-stream',
+                      data: base64Pdf,
+                    },
+                  },
+                  {
+                    text: promptText,
+                  },
+                ],
+              },
+            ],
+            config: {
+              responseMimeType: 'application/json',
+              maxOutputTokens: 2048,
+            },
+          });
+          break; // Success! Exit retry loop
+        } catch (apiErr: unknown) {
+          const err = apiErr as { status?: number; message?: string };
+          const isOverloaded = 
+            err?.status === 503 || 
+            err?.status === 429 ||
+            err?.message?.includes('503') || 
+            err?.message?.includes('429') ||
+            err?.message?.includes('high demand') ||
+            err?.message?.includes('overloaded');
+
+          if (isOverloaded && attempt < retries) {
+            console.warn(`Gemini high demand / rate limit (Attempt ${attempt}/${retries}). Retrying in ${delay / 1000}s...`);
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            delay *= 2; // Exponential backoff
+          } else {
+            throw apiErr;
+          }
+        }
+      }
+
+      const rawText = response?.text ? response.text.trim() : '{}';
+      
+      // Safely parse JSON with markdown cleaning
+      let extractedData: unknown;
+      try {
+        const cleanJson = rawText.replace(/^```json\s*|^```\s*|\s*```$/g, '').trim();
+        extractedData = JSON.parse(cleanJson);
+      } catch (parseErr: unknown) {
+        const errorMsg = parseErr instanceof Error ? parseErr.message : String(parseErr);
+        throw new Error(`Failed to parse AI JSON response (${errorMsg}): ${rawText.slice(0, 100)}...`);
+      }
+
+      // 5. Update database record status to 'success'
+      await supabase
+        .from('syllabi')
+        .update({ status: 'success' })
+        .eq('id', syllabusId);
+
+      return NextResponse.json({ syllabusId, extractedData });
+    } catch (extractionErr: unknown) {
+      const errorMessage = extractionErr instanceof Error ? extractionErr.message : String(extractionErr);
+
+      // Record failure state in database
+      await supabase
+        .from('syllabi')
+        .update({ status: 'failed', error: errorMessage })
+        .eq('id', syllabusId);
+
+      return NextResponse.json({ error: errorMessage, syllabusId }, { status: 500 });
+    }
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

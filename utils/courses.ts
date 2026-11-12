@@ -1,7 +1,18 @@
 "use client";
 
-// Shared types, helpers and the data source for the My Courses pages.
-import { useMemo, useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
+import { createClient } from '@supabase/supabase-js';
+
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+function getSupabase() {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    );
+  }
+  return supabaseInstance;
+}
 
 export type ItemType = "assignment" | "quiz" | "exam" | "project" | "reading";
 
@@ -9,8 +20,8 @@ export type Item = {
   id: string;
   type: ItemType;
   title: string;
-  date: string; // "YYYY-MM-DD", or "" when the date is TBA
-  weight: number; // percent of the final grade
+  date: string;
+  weight: number;
   done: boolean;
 };
 
@@ -25,7 +36,6 @@ export type CourseData = {
   items: Item[];
 };
 
-// Display names and colors for each type.
 export const TYPES: Record<ItemType, { one: string; many: string; color: string }> = {
   assignment: { one: "Assignment", many: "Assignments", color: "var(--ss-mauve)" },
   quiz: { one: "Quiz", many: "Quizzes", color: "var(--ss-amber)" },
@@ -34,10 +44,8 @@ export const TYPES: Record<ItemType, { one: string; many: string; color: string 
   reading: { one: "Reading", many: "Readings", color: "var(--ss-brown)" },
 };
 
-// Each course gets a color by its position in the list.
 export const COURSE_COLORS = ["var(--ss-mauve)", "var(--ss-sage)", "var(--ss-amber)", "var(--ss-brown)"];
 
-// ---------- Date helpers ----------
 export const DAY = 864e5;
 export const parseDate = (s: string) => new Date(`${s}T00:00:00`);
 
@@ -57,13 +65,11 @@ export function relative(s: string, today: Date): string {
   return n > 0 ? `in ${n} days` : `${-n} days ago`;
 }
 
-// ---------- Grade helpers ----------
 const round = (n: number) => Math.round(n * 100) / 100;
 export const totalWeight = (c: CourseData) => round(c.items.reduce((a, i) => a + i.weight, 0));
 export const doneWeight = (c: CourseData) =>
   Math.round(c.items.filter((i) => i.done).reduce((a, i) => a + i.weight, 0));
 
-// ---------- Sample data (used until the database route is ready) ----------
 const it = (id: string, type: ItemType, title: string, date: string, weight: number, done = false): Item => ({
   id, type, title, date, weight, done,
 });
@@ -82,125 +88,276 @@ export const SAMPLE_COURSES: CourseData[] = [
       it("p8", "assignment", "Reflections (3)", "2026-09-26", 23, true),
     ],
   },
-  {
-    id: "stat201", code: "STAT 201", name: "Applied Statistics", instructor: "Prof. Daniel Ruiz",
-    items: [
-      it("s1", "quiz", "Quiz 1", "2026-09-15", 4, true),
-      it("s2", "assignment", "Regression set", "2026-10-17", 8, true),
-      it("s3", "exam", "Midterm exam", "2026-10-29", 24),
-      it("s4", "quiz", "Quiz 3", "2026-11-03", 4),
-      it("s5", "assignment", "Data project", "2026-11-17", 10),
-      it("s6", "exam", "Final exam", "2026-12-10", 34),
-      it("s7", "assignment", "Problem sets (rest)", "2026-11-24", 16),
-    ],
-  },
-  {
-    id: "bio108", code: "BIO 108", name: "Principles of Biology", instructor: "Dr. Samuel Ortiz",
-    items: [
-      it("b1", "assignment", "Lab 2", "2026-10-15", 5, true),
-      it("b2", "exam", "Midterm exam", "2026-10-29", 25),
-      it("b3", "assignment", "Lab 3", "2026-11-05", 5),
-      it("b4", "project", "Poster", "2026-11-19", 10),
-      it("b5", "exam", "Final exam", "2026-12-14", 35),
-      it("b6", "quiz", "Quizzes (2)", "2026-11-12", 10),
-      it("b7", "assignment", "Labs 1 and 4", "2026-12-01", 10),
-    ],
-  },
 ];
 
-// ---------- Data source ----------
-// For now the courses live in this browser's localStorage, seeded from SAMPLE_COURSES.
-// When the database route is ready, replace useCourses() and saveCourses() with
-// calls to your /api/courses route. The pages won't need to change.
 const KEY = "studysync:courses";
 const EVENT = "studysync:courses-changed";
-
-function subscribe(callback: () => void) {
-  window.addEventListener("storage", callback);
-  window.addEventListener(EVENT, callback);
-  return () => {
-    window.removeEventListener("storage", callback);
-    window.removeEventListener(EVENT, callback);
-  };
-}
 
 function readRaw(): string {
   try {
     return localStorage.getItem(KEY) ?? "";
   } catch {
-    return ""; // storage blocked: fall back to the sample
+    return "";
   }
 }
 
-// Returns undefined on the server and during the first render, then the courses.
-export function useCourses(): CourseData[] | undefined {
-  const raw = useSyncExternalStore(subscribe, readRaw, () => undefined);
-  return useMemo(() => {
-    if (raw === undefined) return undefined;
-    try {
-      return raw ? (JSON.parse(raw) as CourseData[]) : SAMPLE_COURSES;
-    } catch {
-      return SAMPLE_COURSES;
-    }
-  }, [raw]);
+// Explicit types for database rows
+interface DbRequirement {
+  id?: string;
+  title?: string;
+  category?: ItemType;
+  due_date?: string;
+  weight?: number;
 }
 
-export function saveCourses(next: CourseData[]) {
+interface DbCourse {
+  id: string;
+  code?: string;
+  title: string;
+  instructor?: string;
+  semester?: string;
+  requirements?: DbRequirement[];
+}
+
+export function useCourses(): CourseData[] | undefined {
+  const [courses, setCourses] = useState<CourseData[] | undefined>(undefined);
+
+  useEffect(() => {
+    async function fetchUserCourses() {
+      try {
+        const supabase = getSupabase();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        let combinedCourses: CourseData[] = [];
+
+        // 1. Get local storage courses first
+        const raw = readRaw();
+        if (raw) {
+          try {
+            combinedCourses = JSON.parse(raw);
+          } catch {
+            combinedCourses = [];
+          }
+        }
+
+        // 2. If logged in, fetch from Supabase and merge
+        if (session?.user?.id) {
+          const { data: dbCourses, error: courseError } = await supabase
+            .from('courses')
+            .select(`
+              id,
+              code,
+              title,
+              instructor,
+              semester,
+              requirements (
+                id,
+                title,
+                category,
+                due_date,
+                weight
+              )
+            `)
+            .eq('user_id', session.user.id);
+
+          if (!courseError && dbCourses && dbCourses.length > 0) {
+            const formattedDb: CourseData[] = (dbCourses as DbCourse[]).map((c) => ({
+              id: c.id,
+              code: c.code || 'COURSE',
+              name: c.title,
+              instructor: c.instructor || 'TBA',
+              semester: c.semester || 'Current Semester',
+              items: (c.requirements || []).map((r, idx) => ({
+                id: r.id || `item_${idx}`,
+                type: r.category || 'assignment',
+                title: r.title || 'Untitled Requirement',
+                date: r.due_date ? r.due_date.split('T')[0] : '',
+                weight: r.weight ?? 0,
+                done: false,
+              })),
+            }));
+
+            // Merge DB courses with local storage ones
+            combinedCourses = [...formattedDb, ...combinedCourses];
+          }
+        }
+
+        if (combinedCourses.length === 0) {
+          combinedCourses = SAMPLE_COURSES;
+        }
+
+        // 3. Deduplicate by course code or title so duplicates never appear
+        const seenCodes = new Set<string>();
+        const uniqueCourses = combinedCourses.filter((course) => {
+          const codeKey = (course.code || course.name).trim().toLowerCase();
+          if (seenCodes.has(codeKey)) {
+            return false;
+          }
+          seenCodes.add(codeKey);
+          return true;
+        });
+
+        setCourses(uniqueCourses);
+        
+        // Keep localStorage clean with only deduplicated courses
+        try {
+          localStorage.setItem(KEY, JSON.stringify(uniqueCourses));
+        } catch {
+          // ignore
+        }
+      } catch (err) {
+        console.error("Failed to fetch courses:", err);
+        setCourses(SAMPLE_COURSES);
+      }
+    }
+
+    fetchUserCourses();
+
+    const handleUpdate = () => fetchUserCourses();
+    window.addEventListener(EVENT, handleUpdate);
+    window.addEventListener("storage", handleUpdate);
+
+    return () => {
+      window.removeEventListener(EVENT, handleUpdate);
+      window.removeEventListener("storage", handleUpdate);
+    };
+  }, []);
+
+  return courses;
+}
+
+export function saveCoursesLocally(next: CourseData[]) {
   try {
     localStorage.setItem(KEY, JSON.stringify(next));
   } catch {
-    // ignore: storage blocked or full
+    // ignore
   }
-  window.dispatchEvent(new Event(EVENT)); // tells every open page to refresh
+  window.dispatchEvent(new Event(EVENT));
 }
 
-// Reads what's saved, or [] if nothing has been saved yet (the demo courses don't count).
-function readStored(): CourseData[]
-{
-    try
-    {
-        const raw = localStorage.getItem(KEY);
-        return raw ? (JSON.parse(raw) as CourseData[]) : [];
-    }catch{
-        return[];
-    }
-}
-
-type ReviewCourse = 
-{
-    code: string;
-    name: string;
-    instructor: string;
-    semester: string;
-    startDate: string;
-    endDate: string;
-}
-
-type ReviewItem = 
-{   type: ItemType; 
-    title: string; 
-    date: string; 
-    weight: number | null 
+export type ReviewCourse = {
+  code: string;
+  name: string;
+  instructor: string;
+  semester?: string;
+  startDate?: string;
+  endDate?: string;
 };
 
-// Saves a confirmed course and returns its id, so we can open its page.
-export function addCourse(course: ReviewCourse, items: ReviewItem[]): string {
-  const slug = course.code.toLowerCase().replace(/[^a-z0-9]+/g, "") || "course";
-  const id = `${slug}-${Date.now().toString(36)}`; // unique, and safe to use in a URL
+export type ReviewItem = {
+  type: ItemType;
+  title: string;
+  date: string;
+  weight: number | null;
+};
 
-  const added: CourseData = {
-    ...course,
-    id,
-    items: items.map((i) => ({
-      id: crypto.randomUUID(),
-      type: i.type,
-      title: i.title,
-      date: i.date,
-      weight: i.weight ?? 0, // readings have no weight
-      done: false,
-    })),
+let isSubmittingCourse = false;
+
+export async function uploadAndExtractSyllabus(file: File, userId: string) {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (userId) {
+    formData.append('userId', userId);
+  }
+
+  const response = await fetch('/api/extract', {
+    method: 'POST',
+    body: formData,
+  });
+
+  const data = (await response.json()) as {
+    syllabusId?: string;
+    extractedData?: unknown;
+    error?: string;
   };
-  // The first real course replaces the demo ones, since readStored() starts empty.
-  saveCourses([...readStored(), added]);
-  return id;
+
+  if (!response.ok) {
+    throw new Error(data.error || 'Extraction failed');
+  }
+
+  return data;
+}
+
+export async function addCourse(
+  course: ReviewCourse,
+  items: ReviewItem[],
+  userId: string,
+  syllabusId?: string | null
+): Promise<string | null> {
+  if (isSubmittingCourse) {
+    return null;
+  }
+
+  isSubmittingCourse = true;
+  try {
+    let activeUserId = userId || '11111111-1111-1111-1111-111111111111';
+    const { data: { session } } = await getSupabase().auth.getSession();
+    if (session?.user?.id) {
+      activeUserId = session.user.id;
+    }
+
+    const termValue = course.semester || 'Current Semester';
+    const formattedRequirements = Array.isArray(items) ? items.map((i, idx) => ({
+      id: `item_local_${Date.now()}_${idx}`,
+      title: i.title || 'Untitled Requirement',         
+      type: i.type || 'assignment',         
+      date: i.date || '',
+      weight: i.weight ?? 0,
+      done: false,
+    })) : [];
+
+    const generatedCourseId = `course_${Date.now()}`;
+
+    const newCourseData: CourseData = {
+      id: generatedCourseId,
+      code: course.code || 'COURSE',
+      name: course.name,
+      instructor: course.instructor || 'TBA',
+      semester: termValue,
+      items: formattedRequirements,
+    };
+
+    const existingRaw = readRaw();
+    const existingCourses: CourseData[] = existingRaw ? JSON.parse(existingRaw) : [];
+    saveCoursesLocally([newCourseData, ...existingCourses]);
+
+    const payload = {
+      userId: activeUserId,
+      syllabusId: syllabusId ?? null,
+      title: course.name,
+      code: course.code,
+      term: termValue,
+      semester: termValue,
+      instructor: course.instructor,
+      requirements: items.map((i) => ({
+        title: i.title || 'Untitled Requirement',         
+        category: i.type || 'assignment',         
+        due_date: i.date ? `${i.date}T00:00:00Z` : null,
+        weight: i.weight ?? 0,
+      })),
+    };
+
+    const response = await fetch('/api/courses', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || !data.courseId) {
+      console.warn("Supabase background save warning:", data.error || data);
+    } else {
+      newCourseData.id = data.courseId;
+      saveCoursesLocally([newCourseData, ...existingCourses]);
+    }
+
+    return generatedCourseId;
+  } finally {
+    isSubmittingCourse = false;
+  }
+}
+
+export async function saveCourses(courses: CourseData[]): Promise<void> {
+  saveCoursesLocally(courses);
 }
