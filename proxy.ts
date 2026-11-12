@@ -1,9 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+// Supabase stores the login in a cookie named sb-<project-ref>-auth-token.
+// Only trust the cookie for the project in .env.local, so a login cookie left
+// over from another Supabase project doesn't count as being logged in.
+const projectRef = new URL(
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://localhost",
+).hostname.split(".")[0];
+const authCookiePrefix = `sb-${projectRef}-auth-token`;
+
 export function proxy(request: NextRequest) {
   const isLoggedIn = request.cookies
     .getAll()
-    .some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+    .some((c) => c.name.startsWith(authCookiePrefix));
   const isLoginPage = request.nextUrl.pathname === "/login";
 
   if (!isLoggedIn && !isLoginPage) {

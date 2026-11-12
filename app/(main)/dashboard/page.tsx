@@ -6,7 +6,7 @@ import { Assistant } from "@/components/studysync/assistant";
 import { createClient } from "@/lib/supabase/client";
 
 type Assignment = {
-  id: number;
+  id: string;
   course: string;
   name: string;
   dueDate: string; // ISO date, YYYY-MM-DD
@@ -70,7 +70,7 @@ export default function DashboardPage() {
   }, []);
 
   // Update the checkbox right away, then save it. Undo if saving fails.
-  async function toggle(id: number) {
+  async function toggle(id: string) {
     const current = assignments.find((a) => a.id === id);
     if (!current) return;
     const next = !current.completed;
