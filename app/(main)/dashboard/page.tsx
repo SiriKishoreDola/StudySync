@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Assistant } from "@/components/studysync/assistant";
 import { createClient } from "@/lib/supabase/client";
 
 type Assignment = {
@@ -305,7 +304,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      <Assistant />
     </div>
   );
 }

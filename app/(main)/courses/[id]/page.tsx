@@ -89,7 +89,7 @@ export default function CourseDetailPage() {
           <h1 className={`${styles.title} ${styles.titleSmall}`}>{course.name}</h1>
           <p className={styles.sub}>{course.instructor}</p>
         </div>
-        <a href={`/api/courses/${course.id}/syllabus`} target="_blank" rel="noopener noreferrer" className={styles.button}>
+        <a href={`/api/courses/${course.id}/syllabus`} target="_blank" rel="noopener noreferrer" className="ss-button">
           View syllabus
         </a>
       </div>
@@ -122,7 +122,7 @@ export default function CourseDetailPage() {
             </div>
             <div className={styles.legend}>
               <button type="button" className={styles.lg} aria-pressed={filter === "all"} onClick={() => setFilter("all")}
-                style={{ "--col": "var(--border)" } as React.CSSProperties}>
+                style={{ "--col": "var(--ss-border)" } as React.CSSProperties}>
                 <i className={styles.lgDot} />All<span>{course.items.length}</span>
               </button>
               {byType.map(({ t, sum }) => (
@@ -134,9 +134,9 @@ export default function CourseDetailPage() {
             </div>
           </div>
           <div className={styles.meter}>
-            <i style={{ width: `${Math.min(100, total)}%`, background: complete ? "var(--ok)" : "var(--warn)" }} />
+            <i style={{ width: `${Math.min(100, total)}%`, background: complete ? "var(--ss-sage-dark)" : "var(--ss-warn)" }} />
           </div>
-          <p className={styles.msg} style={{ color: complete ? "var(--ok)" : "var(--warn)" }}>
+          <p className={styles.msg} style={{ color: complete ? "var(--ss-sage-dark)" : "var(--ss-warn)" }}>
             Weights add up to {total}% ·{" "}
             {complete ? "✓ complete" : total < 100 ? `${Math.round((100 - total) * 100) / 100}% unassigned` : `${Math.round((total - 100) * 100) / 100}% over`}
           </p>

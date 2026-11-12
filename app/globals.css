@@ -15,6 +15,13 @@ body {
   --ss-surface: #f8f2e9;
   --ss-ink: #211b19;
   --ss-border: #bead99;
+  --ss-sage: #8e9680;
+  --ss-sage-dark: #5e6653;
+  --ss-amber: #d9b382;
+  --ss-sand: #d8c8ac;
+  --ss-soft: #5f504a;
+  --ss-warn: #9a5b4f;
+  --ss-brown: #7a6554;
   background: var(--ss-cream);
   color: var(--ss-ink);
   font-family: var(--font-inter), Inter, Arial, Helvetica, sans-serif;
@@ -129,13 +136,24 @@ body {
 }
 
 .ss-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   border: 1px solid var(--ss-border);
   border-radius: 6px;
   padding: 9px 15px;
   background: var(--ss-surface);
   color: var(--ss-ink);
+  font-family: inherit;
   font-size: 14px;
   font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ss-button:hover:not(:disabled) {
+  filter: brightness(0.96);
 }
 
 .ss-button.primary {

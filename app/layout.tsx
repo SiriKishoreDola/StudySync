@@ -1,11 +1,21 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({
+// Self-hosted (from @fontsource-variable, OFL) so builds never depend on reaching Google Fonts.
+const inter = localFont({
+  src: "./fonts/inter-latin-wght-normal.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "100 900",
+});
+
+const newsreader = localFont({
+  src: [
+    { path: "./fonts/newsreader-latin-wght-normal.woff2", style: "normal" },
+    { path: "./fonts/newsreader-latin-wght-italic.woff2", style: "italic" },
+  ],
+  variable: "--font-newsreader",
+  weight: "200 800",
 });
 
 export const metadata: Metadata = {
@@ -16,7 +26,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} antialiased`}>
+    <html lang="en" className={`${inter.variable} ${newsreader.variable} antialiased`}>
       <body>
         <div className="studysync-demo app-shell">{children}</div>
       </body>
