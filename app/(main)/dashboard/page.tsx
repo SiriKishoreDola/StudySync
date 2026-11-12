@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { placeholderStudent } from "@/lib/placeholder-student";
+import { createClient } from "@/lib/supabase/client";
 
 type Assignment = {
-  id: number;
+  id: string;
   course: string;
   name: string;
   dueDate: string; // ISO date, YYYY-MM-DD
@@ -14,12 +14,17 @@ type Assignment = {
   completed: boolean;
 };
 
-// Fixed "today" so the mock page looks the same every time. Use new Date() later.
-const TODAY = new Date("2026-10-15");
 const DAY_MS = 86400000;
 
-function daysUntil(iso: string) {
-  return Math.round((new Date(iso).getTime() - TODAY.getTime()) / DAY_MS);
+// Today's date (in the user's time zone) as midnight UTC, so it lines up with
+// YYYY-MM-DD due dates.
+function getToday() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+}
+
+function daysUntil(iso: string, today: Date) {
+  return Math.round((new Date(iso).getTime() - today.getTime()) / DAY_MS);
 }
 
 function formatDate(iso: string) {
@@ -34,6 +39,24 @@ export default function DashboardPage() {
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [userName, setUserName] = useState("");
+  // Set after the page loads in the browser so server and browser always agree.
+  const [today, setToday] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setToday(getToday());
+  }, []);
+
+  // Get the signed-in user's name from Supabase.
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      const user = data.user;
+      if (!user) return;
+      const fullName = user.user_metadata?.full_name as string | undefined;
+      setUserName(fullName || user.email?.split("@")[0] || "");
+    });
+  }, []);
 
   // Load assignments from the API when the page opens.
   useEffect(() => {
@@ -57,7 +80,7 @@ export default function DashboardPage() {
   }, []);
 
   // Update the checkbox right away, then save it. Undo if saving fails.
-  async function toggle(id: number) {
+  async function toggle(id: string) {
     const current = assignments.find((a) => a.id === id);
     if (!current) return;
     const next = !current.completed;
@@ -82,12 +105,14 @@ export default function DashboardPage() {
     }
   }
 
+  if (!today) return <div className="dashboard-page" />;
+
   const sorted = [...assignments].sort((a, b) =>
     a.dueDate.localeCompare(b.dueDate),
   );
   const open = sorted.filter((a) => !a.completed);
 
-  const dueThisWeek = open.filter((a) => daysUntil(a.dueDate) <= 7).length;
+  const dueThisWeek = open.filter((a) => daysUntil(a.dueDate, today) <= 7).length;
   const upcomingExams = open.filter((a) => a.type === "exam").length;
   const courses = Array.from(new Set(assignments.map((a) => a.course)));
 
@@ -98,12 +123,18 @@ export default function DashboardPage() {
   });
 
   const nextDeadline = open[0];
-  const nextDays = nextDeadline ? daysUntil(nextDeadline.dueDate) : 0;
+  const nextDays = nextDeadline ? daysUntil(nextDeadline.dueDate, today) : 0;
   const nextLabel =
-    nextDays <= 0 ? "Due today" : nextDays === 1 ? "Due tomorrow" : `Due in ${nextDays} days`;
+    nextDays < 0
+      ? "Overdue"
+      : nextDays === 0
+        ? "Due today"
+        : nextDays === 1
+          ? "Due tomorrow"
+          : `Due in ${nextDays} days`;
 
   const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const date = new Date(TODAY.getTime() + i * DAY_MS);
+    const date = new Date(today.getTime() + i * DAY_MS);
     const iso = date.toISOString().slice(0, 10);
     return {
       label: ["S", "M", "T", "W", "T", "F", "S"][date.getUTCDay()],
@@ -118,8 +149,18 @@ export default function DashboardPage() {
     <div className="dashboard-page">
       <div className="intro-row">
         <div>
-          <h1 className="text-[28px] font-semibold">Good evening, {placeholderStudent.name}</h1>
-          <p className="mt-1 text-sm">Thursday, October 15 · Your semester at a glance</p>
+          <h1 className="text-[28px] font-semibold">
+            Good evening{userName ? `, ${userName}` : ""}
+          </h1>
+          <p className="mt-1 text-sm">
+            {today.toLocaleDateString("en-US", {
+              weekday: "long",
+              month: "long",
+              day: "numeric",
+              timeZone: "UTC",
+            })}{" "}
+            · Your semester at a glance
+          </p>
         </div>
         <Link href="/upload" className="ss-button primary inline-block">
           + Upload syllabus
