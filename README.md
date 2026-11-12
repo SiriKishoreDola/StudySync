@@ -20,3 +20,14 @@ StudySync is a syllabus-based academic planning tool that helps students organiz
 - **PDF Processing:** PDF parsing library (converts uploaded syllabi to text for extraction)
 - **Data Visualization:** Recharts
 - **Deployment:** Vercel
+
+## Database (Supabase)
+Schema, row-level security, the private `syllabi` storage bucket and the `save_course()` function live in `supabase/migrations/`. The Supabase CLI is a dev dependency, so no global install is needed.
+
+- **First time (hosted project):** `npx supabase login`, then `npx supabase link --project-ref <ref>` (ref is the subdomain of `NEXT_PUBLIC_SUPABASE_URL`; asks for the database password).
+- **Apply migrations to the linked project:** `npm run db:push` (shows the pending migrations and asks to confirm; add `-- --dry-run` to preview only)
+- **Local database (needs Docker):** `npx supabase start`, then `npx supabase db reset` to rebuild it from the migrations.
+- **Test security rules locally:** `npm run test:db`
+- **Regenerate TypeScript types after a schema change:** `npm run db:types`
+
+New schema changes go in a new file: `npx supabase migration new <name>`. Don't edit a migration that has already been pushed.
