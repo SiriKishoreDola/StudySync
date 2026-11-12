@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
-import { Inter, Newsreader } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({
+// Self-hosted (from @fontsource-variable, OFL) so builds never depend on reaching Google Fonts.
+const inter = localFont({
+  src: "./fonts/inter-latin-wght-normal.woff2",
   variable: "--font-inter",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: "100 900",
 });
 
-const newsreader = Newsreader({
+const newsreader = localFont({
+  src: [
+    { path: "./fonts/newsreader-latin-wght-normal.woff2", style: "normal" },
+    { path: "./fonts/newsreader-latin-wght-italic.woff2", style: "italic" },
+  ],
   variable: "--font-newsreader",
-  subsets: ["latin"],
-  style: ["normal", "italic"],
+  weight: "200 800",
 });
 
 export const metadata: Metadata = {
