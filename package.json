@@ -9,7 +9,7 @@
     "lint": "eslint",
     "test:chat": "node --test tests/chat-route.test.mjs",
     "db:push": "supabase db push",
-    "db:types": "supabase gen types typescript --local > lib/database.types.ts",
+    "db:types": "supabase gen types typescript > lib/database.types.ts",
     "test:db": "supabase test db"
   },
   "dependencies": {
