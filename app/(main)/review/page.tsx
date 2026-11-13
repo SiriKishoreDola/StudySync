@@ -2,6 +2,7 @@
 "use client";
 
 import { useRef, useState, useSyncExternalStore } from "react";
+import { useUserId, extractionStorageKey } from "@/components/auth-user-provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
@@ -79,7 +80,6 @@ const SAMPLE: Extraction = {
 };
 
 
-const STORAGE_KEY = "studysync:extraction"; // same key the upload page saves to
 
 // True only for real dates written as YYYY-MM-DD.
 function isValidDate(value: string): boolean {
@@ -179,9 +179,9 @@ function subscribe(callback: () => void) {
   window.addEventListener("storage", callback);
   return () => window.removeEventListener("storage", callback);
 }
-function readStored(): string | null {
+function readStored(userId: string): string | null {
   try {
-    return sessionStorage.getItem(STORAGE_KEY);
+    return sessionStorage.getItem(extractionStorageKey(userId));
   } catch {
     return null; // some privacy modes block storage
   }
@@ -195,7 +195,8 @@ function readOnServer(): string | null | undefined {
 // This outer component only loads the data. The real screen is <Review />, which
 // starts with that data and lets the user edit it.
 export default function ReviewPage() {
-  const stored = useSyncExternalStore(subscribe, readStored, readOnServer);
+  const userId = useUserId();
+  const stored = useSyncExternalStore(subscribe, () => readStored(userId), readOnServer);
 
   // 1. Still loading in the browser
   if (stored === undefined) {
@@ -222,6 +223,7 @@ export default function ReviewPage() {
 }  
 
 function Review({ initial }: { initial: Extraction }) {
+  const userId = useUserId();
   const router = useRouter();
   const { fileName } = initial;
   // The course is now state, so the popup can change it.
@@ -294,12 +296,11 @@ function Review({ initial }: { initial: Extraction }) {
     setSaving(true);
 
     try {
-      // Provide a valid test UUID (or retrieve your auth user ID from Supabase session if logged in)
-      const userId = "123e4567-e89b-12d3-a456-426614174000"; 
+
       const syllabusId = null; // Can be passed if stored from extraction
 
       const courseId = await addCourse(course, items, userId, syllabusId);
-      sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(extractionStorageKey(userId));
       
       // Navigate to the newly created course page if an ID was returned, otherwise fallback to dashboard
       router.push(courseId ? `/courses/${courseId}` : "/dashboard");
@@ -598,7 +599,7 @@ function Review({ initial }: { initial: Extraction }) {
               href="/upload"
               className={styles.link}
               // forget the current result so the next upload starts fresh
-              onClick={() => sessionStorage.removeItem(STORAGE_KEY)}
+              onClick={() => sessionStorage.removeItem(extractionStorageKey(userId))}
             >
               Upload a different file
             </Link>

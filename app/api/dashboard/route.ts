@@ -1,3 +1,4 @@
+import { getCurrentUserId } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 type Course = { code: string; name: string };
@@ -14,18 +15,14 @@ type Row = {
 // Returns the signed-in user's requirements. Supabase's row-level security
 // already limits the rows to this user, so we never ask for a user id.
 export async function GET() {
+  const userId = await getCurrentUserId();
+  if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return Response.json({ error: "Not signed in" }, { status: 401 });
-  }
 
   const { data, error } = await supabase
     .from("requirements")
     .select("id, title, type, due_date, weight, completed, course:courses(code, name)")
+    .eq("user_id", userId)
     .not("due_date", "is", null)
     .order("due_date", { ascending: true });
 

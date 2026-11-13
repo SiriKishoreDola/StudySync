@@ -13,7 +13,7 @@ StudySync is a syllabus-based academic planning tool that helps students organiz
 
 ## Tech Stack
 - **Frontend & Backend:** Next.js (API routes)
-- **Auth:** NextAuth
+- **Auth:** Supabase Auth (Google OAuth and email/password)
 - **Database:** Supabase (PostgreSQL)
 - **Styling:** Tailwind CSS
 - **AI:** Gemini API (syllabus extraction + planning assistant)
@@ -31,3 +31,5 @@ Schema, row-level security, the private `syllabi` storage bucket and the `save_c
 - **Regenerate TypeScript types after a schema change:** `npm run db:types`
 
 New schema changes go in a new file: `npx supabase migration new <name>`. Don't edit a migration that has already been pushed.
+
+Google OAuth setup and validation: [AUTH.md](AUTH.md).

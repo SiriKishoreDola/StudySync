@@ -6,7 +6,7 @@ import ts from 'typescript';
 const source = ts.transpileModule(fs.readFileSync('app/api/chat/route.ts', 'utf8'), {
   compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
 }).outputText;
-function setup({ env = 'development', key = 'test-placeholder', generate = async () => ({ text: 'Fictional example plan.' }) } = {}) {
+function setup({ env = 'development', key = 'test-placeholder', userId = 'user-a', generate = async () => ({ text: 'Fictional example plan.' }) } = {}) {
   let calls = 0;
   const exports = {};
   vm.runInNewContext(source, {
@@ -15,6 +15,7 @@ function setup({ env = 'development', key = 'test-placeholder', generate = async
         constructor(options) { assert.equal(options.httpOptions.retryOptions.attempts, 1); }
         models = { generateContent: async (request) => { calls++; return generate(request); } };
       } };
+      if (name === '@/lib/auth') return { getCurrentUserId: async () => userId };
       if (name === '@/lib/gemini-errors') {
         const exports = {};
         vm.runInNewContext(ts.transpileModule(fs.readFileSync('lib/gemini-errors.ts', 'utf8'), {
@@ -211,11 +212,14 @@ test('signed-in shell owns one assistant while Dashboard and Login do not mount 
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   vm.runInNewContext(code, { exports, require(name) {
+    if (name === '@/lib/auth') return { getCurrentUserId: async () => 'user-a' };
+    if (name === 'next/navigation') return { redirect: () => { throw new Error('Unauthorized redirect'); } };
+    if (name === '@/components/auth-user-provider') return { AuthUserProvider: ({ children }) => children };
     if (name === '@/components/Navbar') return { default: () => React.createElement('nav', null, 'Shared navigation') };
     if (name === '@/components/studysync/assistant') return { Assistant: () => React.createElement('button', { 'data-chat-launcher': true }, 'Ask StudySync') };
     return require(name);
   } });
-  const html = renderToStaticMarkup(React.createElement(exports.default, null, React.createElement('section', null, 'Page content')));
+  const html = renderToStaticMarkup(await exports.default({ children: React.createElement('section', null, 'Page content') }));
   assert.equal((html.match(/data-chat-launcher/g) || []).length, 1);
   assert.match(html, /Shared navigation/);
   assert.match(html, /Page content/);
@@ -224,4 +228,10 @@ test('signed-in shell owns one assistant while Dashboard and Login do not mount 
   }
   assert.ok(fs.existsSync('app/(main)/review/page.tsx'));
   assert.equal(fs.existsSync('app/review/page.tsx'), false);
+});
+
+test('signed-out chat returns 401 before any provider request', async () => {
+  const app = setup({ userId: null });
+  assert.equal((await app.post(req())).status, 401);
+  assert.equal(app.calls(), 0);
 });

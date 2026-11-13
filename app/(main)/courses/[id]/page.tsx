@@ -1,5 +1,6 @@
 "use client";
 
+import { useUserId } from "@/components/auth-user-provider";
 import { useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -13,6 +14,7 @@ import styles from "../courses.module.css";
 
 export default function CourseDetailPage() {
   const { id } = useParams<{ id: string }>(); // the part of the URL after /courses/
+  const userId = useUserId();
   const courses = useCourses();
 
   const [filter, setFilter] = useState<"all" | ItemType>("all");
@@ -37,7 +39,7 @@ export default function CourseDetailPage() {
 
   // ----- Editing: every change is saved straight away -----
   const update = (change: (c: CourseData) => CourseData) =>
-    saveCourses(courses.map((c) => (c.id === id ? change(c) : c)));
+    saveCourses(courses.map((c) => (c.id === id ? change(c) : c)), userId);
 
   const editItem = (itemId: string, patch: Partial<Item>) =>
     update((c) => ({ ...c, items: c.items.map((i) => (i.id === itemId ? { ...i, ...patch } : i)) }));

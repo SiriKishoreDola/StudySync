@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
@@ -15,11 +16,16 @@ function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const [logoutError, setLogoutError] = useState("");
+
   async function handleLogOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
-    router.refresh();
+    setLogoutError("");
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut({ scope: "local" });
+      if (error) throw error;
+      router.push("/login"); router.refresh();
+    } catch { setLogoutError("Could not sign out. Please try again."); }
   }
 
   return (
@@ -62,6 +68,7 @@ function Navbar() {
           <span aria-hidden="true">→</span>
         </Link>
         <span className="text-sm">Fall Semester</span>
+        {logoutError && <p role="alert" className="text-sm">{logoutError}</p>}
         <button className="nav-button" type="button" onClick={handleLogOut}>
           Log out
         </button>

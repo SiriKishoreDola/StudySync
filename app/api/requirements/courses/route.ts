@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
+import { getCurrentUserId } from '@/lib/auth';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function GET(req: Request) {
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const supabase = await createClient();
   try {
     const { searchParams } = new URL(req.url);
     const courseId = searchParams.get('courseId');
@@ -18,6 +18,7 @@ export async function GET(req: Request) {
     const { data, error } = await supabase
       .from('requirements')
       .select('*')
+      .eq('user_id', userId)
       .eq('course_id', courseId);
 
     if (error) {

@@ -1,9 +1,14 @@
+import { redirect } from "next/navigation";
+import { getCurrentUserId } from "@/lib/auth";
+import { AuthUserProvider } from "@/components/auth-user-provider";
 import Navbar from "@/components/Navbar";
 import { Assistant } from "@/components/studysync/assistant";
 
-export default function MainLayout({ children }: LayoutProps<"/">) {
+export default async function MainLayout({ children }: LayoutProps<"/">) {
+  const userId = await getCurrentUserId();
+  if (!userId) redirect("/login");
   return (
-    <>
+    <AuthUserProvider userId={userId} key={userId}>
       <a className="skip-link" href="#main-content">
         Skip to content
       </a>
@@ -12,6 +17,6 @@ export default function MainLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <Assistant />
-    </>
+    </AuthUserProvider>
   );
 }

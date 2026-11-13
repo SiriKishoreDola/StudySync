@@ -1,6 +1,7 @@
 "use client";
 
 import { type DragEvent, useRef, useState } from "react";
+import { useUserId, extractionStorageKey } from "@/components/auth-user-provider";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import styles from "./page.module.css";
@@ -90,6 +91,7 @@ function CheckIcon({ size = 18 }: { size?: number }) {
 
 
 export default function UploadPage() {
+  const userId = useUserId();
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -138,7 +140,7 @@ export default function UploadPage() {
       }
 
       // Save the result so the review page can read it, then go there.
-      sessionStorage.setItem("studysync:extraction", JSON.stringify(data));
+      sessionStorage.setItem(extractionStorageKey(userId), JSON.stringify(data));
       router.push("/review");
     } catch (err) {
       // A TypeError means the request itself failed (offline, server not running).

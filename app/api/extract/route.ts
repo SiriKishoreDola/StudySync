@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
+import { getCurrentUserId } from '@/lib/auth';
 import { GoogleGenAI } from '@google/genai';
 
 export async function POST(req: Request) {
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const supabase = await createClient();
   try {
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+
 
     // 1. Extract the file from the incoming FormData
     const formData = await req.formData();
@@ -23,10 +24,10 @@ export async function POST(req: Request) {
 
     const originalFilename = file.name;
     const fileType = file.type || 'application/pdf';
-    
+
     // Default test user ID (replace with real auth user ID when ready)
-    const userId = '11111111-1111-1111-1111-111111111111'; 
-    const filePath = `${userId}/${Date.now()}_${originalFilename}`;
+
+    const filePath = `${userId}/${crypto.randomUUID()}.${originalFilename.split(".").pop()?.replace(/[^a-zA-Z0-9]/g, "") || "pdf"}`;
 
     // 2. Upload file directly to Supabase Storage bucket 'syllabi'
     const arrayBuffer = await file.arrayBuffer();
@@ -108,10 +109,10 @@ export async function POST(req: Request) {
           break; // Success! Exit retry loop
         } catch (apiErr: unknown) {
           const err = apiErr as { status?: number; message?: string };
-          const isOverloaded = 
-            err?.status === 503 || 
+          const isOverloaded =
+            err?.status === 503 ||
             err?.status === 429 ||
-            err?.message?.includes('503') || 
+            err?.message?.includes('503') ||
             err?.message?.includes('429') ||
             err?.message?.includes('high demand') ||
             err?.message?.includes('overloaded');
@@ -127,7 +128,7 @@ export async function POST(req: Request) {
       }
 
       const rawText = response?.text ? response.text.trim() : '{}';
-      
+
       // Safely parse JSON with markdown cleaning
       let extractedData: unknown;
       try {
@@ -141,8 +142,9 @@ export async function POST(req: Request) {
       // 5. Update database record status to 'success'
       await supabase
         .from('syllabi')
-        .update({ status: 'success' })
-        .eq('id', syllabusId);
+        .update({ status: 'extracted' })
+        .eq('user_id', userId)
+      .eq('id', syllabusId);
 
       return NextResponse.json({ syllabusId, extractedData });
     } catch (extractionErr: unknown) {
@@ -152,7 +154,8 @@ export async function POST(req: Request) {
       await supabase
         .from('syllabi')
         .update({ status: 'failed', error: errorMessage })
-        .eq('id', syllabusId);
+        .eq('user_id', userId)
+      .eq('id', syllabusId);
 
       return NextResponse.json({ error: errorMessage, syllabusId }, { status: 500 });
     }

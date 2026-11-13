@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@/lib/supabase/server';
+import { getCurrentUserId } from '@/lib/auth';
 import { z } from 'zod';
 import { CATEGORIES } from '@/utils/schema';
 
@@ -11,7 +12,6 @@ const requirementSchema = z.object({
 });
 
 const courseSchema = z.object({
-  userId: z.string().uuid('Invalid user ID'),
   syllabusId: z.string().uuid().nullable().optional(),
   title: z.string().min(1, 'Course title is required'),
   code: z.string().nullable().optional(),
@@ -19,12 +19,11 @@ const courseSchema = z.object({
   requirements: z.array(requirementSchema).default([]),
 });
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
 
 export async function POST(req: Request) {
+  const userId = await getCurrentUserId();
+  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const supabase = await createClient();
   try {
     const rawBody: unknown = await req.json();
     
@@ -40,16 +39,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ errors: validation.error.format() }, { status: 400 });
     }
 
-    const { userId, syllabusId, title, code, term, requirements } = validation.data;
+    const { syllabusId, title, code, term, requirements } = validation.data;
 
     // Call Person 1's atomic Postgres RPC function[cite: 2]
-    const { data: courseId, error } = await supabase.rpc('save_syllabus_course', {
-      p_user_id: userId,
+    const { data: courseId, error } = await supabase.rpc('save_course', {
+      p_course: { name: title, code: code ?? '', semester: term ?? '' },
       p_syllabus_id: syllabusId ?? null,
-      p_title: title,
-      p_code: code ?? null,
-      p_term: term ?? null,
-      p_requirements: requirements, // Passed directly as native array for jsonb_to_recordset
+      p_requirements: requirements.map(item => ({ type: item.category, title: item.title, date: item.due_date ?? '', weight: item.weight ?? null })),
     });
 
     if (error) {

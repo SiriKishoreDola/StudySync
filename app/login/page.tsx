@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { GoogleSignIn } from "@/components/google-sign-in";
 import { useRouter } from "next/navigation";
 import { createClient } from "../../lib/supabase/client";
 
@@ -82,6 +83,9 @@ export default function LoginPage() {
 
   // When someone opens the reset link from their email, show the reset form.
   useEffect(() => {
+    const timer = setTimeout(() => {
+      if (new URL(window.location.href).searchParams.has("error")) setError("Google sign-in could not be completed. Please try again.");
+    }, 0);
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setView("reset");
@@ -89,7 +93,7 @@ export default function LoginPage() {
         setNotice("");
       }
     });
-    return () => data.subscription.unsubscribe();
+    return () => { clearTimeout(timer); data.subscription.unsubscribe(); };
   }, [supabase]);
 
   function go(next: View, message = "") {
@@ -219,6 +223,7 @@ export default function LoginPage() {
           </p>
         )}
 
+        {(view === "signin" || view === "signup") && <div className="mb-5"><GoogleSignIn /></div>}
         {view === "signin" && (
           <form onSubmit={handleSignIn} className="space-y-4">
             <Field

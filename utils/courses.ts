@@ -1,18 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createClient } from '@supabase/supabase-js';
-
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
-function getSupabase() {
-  if (!supabaseInstance) {
-    supabaseInstance = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
-  }
-  return supabaseInstance;
-}
+import { createClient as getSupabase } from "@/lib/supabase/client";
+import { useUserId } from "@/components/auth-user-provider";
 
 export type ItemType = "assignment" | "quiz" | "exam" | "project" | "reading";
 
@@ -93,9 +83,9 @@ export const SAMPLE_COURSES: CourseData[] = [
 const KEY = "studysync:courses";
 const EVENT = "studysync:courses-changed";
 
-function readRaw(): string {
+function readRaw(userId: string): string {
   try {
-    return localStorage.getItem(KEY) ?? "";
+    return localStorage.getItem(`${KEY}:${userId}`) ?? "";
   } catch {
     return "";
   }
@@ -105,7 +95,7 @@ function readRaw(): string {
 interface DbRequirement {
   id?: string;
   title?: string;
-  category?: ItemType;
+  type?: ItemType;
   due_date?: string;
   weight?: number;
 }
@@ -113,13 +103,14 @@ interface DbRequirement {
 interface DbCourse {
   id: string;
   code?: string;
-  title: string;
+  name: string;
   instructor?: string;
   semester?: string;
   requirements?: DbRequirement[];
 }
 
 export function useCourses(): CourseData[] | undefined {
+  const userId = useUserId();
   const [courses, setCourses] = useState<CourseData[] | undefined>(undefined);
 
   useEffect(() => {
@@ -131,7 +122,7 @@ export function useCourses(): CourseData[] | undefined {
         let combinedCourses: CourseData[] = [];
 
         // 1. Get local storage courses first
-        const raw = readRaw();
+        const raw = readRaw(userId);
         if (raw) {
           try {
             combinedCourses = JSON.parse(raw);
@@ -147,13 +138,13 @@ export function useCourses(): CourseData[] | undefined {
             .select(`
               id,
               code,
-              title,
+              name,
               instructor,
               semester,
               requirements (
                 id,
                 title,
-                category,
+                type,
                 due_date,
                 weight
               )
@@ -164,12 +155,12 @@ export function useCourses(): CourseData[] | undefined {
             const formattedDb: CourseData[] = (dbCourses as DbCourse[]).map((c) => ({
               id: c.id,
               code: c.code || 'COURSE',
-              name: c.title,
+              name: c.name,
               instructor: c.instructor || 'TBA',
               semester: c.semester || 'Current Semester',
               items: (c.requirements || []).map((r, idx) => ({
                 id: r.id || `item_${idx}`,
-                type: r.category || 'assignment',
+                type: r.type || 'assignment',
                 title: r.title || 'Untitled Requirement',
                 date: r.due_date ? r.due_date.split('T')[0] : '',
                 weight: r.weight ?? 0,
@@ -201,7 +192,7 @@ export function useCourses(): CourseData[] | undefined {
         
         // Keep localStorage clean with only deduplicated courses
         try {
-          localStorage.setItem(KEY, JSON.stringify(uniqueCourses));
+          localStorage.setItem(`${KEY}:${userId}`, JSON.stringify(uniqueCourses));
         } catch {
           // ignore
         }
@@ -221,14 +212,14 @@ export function useCourses(): CourseData[] | undefined {
       window.removeEventListener(EVENT, handleUpdate);
       window.removeEventListener("storage", handleUpdate);
     };
-  }, []);
+  }, [userId]);
 
   return courses;
 }
 
-export function saveCoursesLocally(next: CourseData[]) {
+export function saveCoursesLocally(next: CourseData[], userId: string) {
   try {
-    localStorage.setItem(KEY, JSON.stringify(next));
+    localStorage.setItem(`${KEY}:${userId}`, JSON.stringify(next));
   } catch {
     // ignore
   }
@@ -290,11 +281,11 @@ export async function addCourse(
 
   isSubmittingCourse = true;
   try {
-    let activeUserId = userId || '11111111-1111-1111-1111-111111111111';
+    let activeUserId = userId;
     const { data: { session } } = await getSupabase().auth.getSession();
-    if (session?.user?.id) {
-      activeUserId = session.user.id;
-    }
+    if (!session?.user?.id) throw new Error("Sign in before saving a course.");
+    if (session.user.id !== userId) throw new Error("Account changed. Reload before saving.");
+    activeUserId = session.user.id;
 
     const termValue = course.semester || 'Current Semester';
     const formattedRequirements = Array.isArray(items) ? items.map((i, idx) => ({
@@ -317,9 +308,9 @@ export async function addCourse(
       items: formattedRequirements,
     };
 
-    const existingRaw = readRaw();
+    const existingRaw = readRaw(userId);
     const existingCourses: CourseData[] = existingRaw ? JSON.parse(existingRaw) : [];
-    saveCoursesLocally([newCourseData, ...existingCourses]);
+    saveCoursesLocally([newCourseData, ...existingCourses], activeUserId);
 
     const payload = {
       userId: activeUserId,
@@ -349,7 +340,7 @@ export async function addCourse(
       console.warn("Supabase background save warning:", data.error || data);
     } else {
       newCourseData.id = data.courseId;
-      saveCoursesLocally([newCourseData, ...existingCourses]);
+      saveCoursesLocally([newCourseData, ...existingCourses], activeUserId);
     }
 
     return generatedCourseId;
@@ -358,6 +349,6 @@ export async function addCourse(
   }
 }
 
-export async function saveCourses(courses: CourseData[]): Promise<void> {
-  saveCoursesLocally(courses);
+export async function saveCourses(courses: CourseData[], userId: string): Promise<void> {
+  saveCoursesLocally(courses, userId);
 }

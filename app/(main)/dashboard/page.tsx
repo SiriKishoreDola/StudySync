@@ -44,7 +44,8 @@ export default function DashboardPage() {
   const [today, setToday] = useState<Date | null>(null);
 
   useEffect(() => {
-    setToday(getToday());
+    const timer = setTimeout(() => setToday(getToday()), 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Get the signed-in user's name from Supabase.
