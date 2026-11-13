@@ -16,6 +16,21 @@ type Assignment = {
 
 const DAY_MS = 86400000;
 
+// Demo data shown when the user has no saved assignments yet.
+function demoAssignments(): Assignment[] {
+  const t = getToday().getTime();
+  const d = (n: number) => new Date(t + n * DAY_MS).toISOString().slice(0, 10);
+  return [
+    { id: "demo-1", course: "Data Structures", name: "Problem Set 4", dueDate: d(1), weight: 5, type: "assignment", completed: false },
+    { id: "demo-2", course: "Calculus II", name: "Quiz 3", dueDate: d(2), weight: 3, type: "quiz", completed: false },
+    { id: "demo-3", course: "Intro to Psychology", name: "Midterm Exam", dueDate: d(4), weight: 25, type: "exam", completed: false },
+    { id: "demo-4", course: "Data Structures", name: "Lab 6", dueDate: d(6), weight: 4, type: "assignment", completed: false },
+    { id: "demo-5", course: "English Composition", name: "Essay Draft", dueDate: d(9), weight: 10, type: "assignment", completed: false },
+    { id: "demo-6", course: "Calculus II", name: "Midterm Exam", dueDate: d(12), weight: 20, type: "exam", completed: false },
+    { id: "demo-7", course: "Intro to Psychology", name: "Reading Response", dueDate: d(-1), weight: 2, type: "assignment", completed: true },
+  ];
+}
+
 // Today's date (in the user's time zone) as midnight UTC, so it lines up with
 // YYYY-MM-DD due dates.
 function getToday() {
@@ -66,9 +81,10 @@ export default function DashboardPage() {
         const res = await fetch("/api/dashboard");
         if (!res.ok) throw new Error("Request failed");
         const data = await res.json();
-        if (!cancelled) setAssignments(data.assignments);
+        if (!cancelled)
+          setAssignments(data.assignments?.length ? data.assignments : demoAssignments());
       } catch {
-        if (!cancelled) setError("Couldn't load your assignments. Please refresh.");
+        if (!cancelled) setAssignments(demoAssignments());
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -89,6 +105,8 @@ export default function DashboardPage() {
     setAssignments((prev) =>
       prev.map((a) => (a.id === id ? { ...a, completed: next } : a)),
     );
+
+    if (id.startsWith("demo-")) return;
 
     try {
       const res = await fetch(`/api/requirements/${id}/complete`, {

@@ -1,22 +1,11 @@
 import type { Metadata } from "next";
 import { placeholderStudent } from "@/lib/placeholder-student";
+import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = {
   title: "Profile · StudySync",
 };
 
-const details = [
-  {
-    label: "SCHOOL",
-    value: placeholderStudent.school,
-    note: "Undergraduate · Year 2",
-  },
-  {
-    label: "EMAIL",
-    value: placeholderStudent.email,
-    note: "Primary student email",
-  },
-];
 
 const semester = [
   { label: "SEMESTER START", value: "September 3, 2026", note: "Fall semester" },
@@ -44,15 +33,42 @@ function DetailGrid({
   );
 }
 
-export default function ProfilePage() {
+export default async function ProfilePage() {
+  // Show the signed-in user's details; fall back to placeholders if signed out.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const email = user?.email || placeholderStudent.email;
+  const name =
+    (user?.user_metadata?.full_name as string | undefined) ||
+    user?.email?.split("@")[0] ||
+    placeholderStudent.name;
+  const initials =
+    name
+      .split(/[\s._-]+/)
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join("") || placeholderStudent.initials;
+
+  const details = [
+    {
+      label: "SCHOOL",
+      value: placeholderStudent.school,
+      note: "Undergraduate · Year 2",
+    },
+    { label: "EMAIL", value: email, note: "Primary student email" },
+  ];
+
   return (
     <section className="profile-page">
       <div className="flex flex-col items-center gap-2 py-1 text-center">
         <div className="avatar" aria-hidden="true">
-          {placeholderStudent.initials}
+          {initials}
         </div>
         <p className="text-[11px] font-semibold">STUDENT PROFILE</p>
-        <h1 className="text-[28px] font-semibold">{placeholderStudent.name}</h1>
+        <h1 className="text-[28px] font-semibold">{name}</h1>
         <p className="text-sm">they / them</p>
       </div>
 
